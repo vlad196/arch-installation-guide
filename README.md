@@ -1,28 +1,58 @@
-# Конфигурация для моей системы
 # Моя система:
-#### Видеокарта: nvidia
-#### Процессор: amd
+#### Видеокарта: NVIDIA
+#### Процессор: AMD
 #### Диски:
-#### (3 физических диска)
-#### ||└───nvme0n1:
-#### ||    | └──nvme0n1p1 -- efi 2gb
-#### ||    └────nvme0n1p2 -- LUKS decrypt
-#### ||          LUKS:system 
-#### ||          | └───systemvg-swap 16 gb
-#### ||          └─────systemvg-root 935 gb
-#### |└─────sda -- windows 
-#### └──────sdb -- дополнительный диск с ссылками папок в него
+```mermaid
+flowchart LR
+  subgraph NVME0N1
+    direction LR
+    subgraph NVME0N1P1
+        direction TB
+        fat32
+    end
+    subgraph NVME0N1P2
+        direction TB
+        swapfs
+    end
+    subgraph NVME0N1P3
+        direction TB
+        f2fs
+    end
+  end
+  
+  subgraph Linux Catalogue Structure
+    direction LR
+        /
+        /efi
+        subgraph /mnt
+            /mnt/sdb
+        end
+    end
+    subgraph sdb
+        direction TB
+        btrfs
+    end
+    subgraph sda
+        direction TB
+        subgraph windows
+    end
+  end
+
+fat32 -- 2Gb--> /efi
+f2fs -- 935Gb--> /
+swapfs -- 16Gb--> swap
+btrfs -- 2Tb--> /mnt/sdb
+```
 
 # Система Arch, особенности:
 ##### - Раскомментированы все тестовые и 32 битные репозитории пакетов
 ##### - Добавлено LQX ядро
-#### - Корневой раздел и swap на одном зашифрованном диске LUKS
-#### - Корневой раздел и swap это LVM тома
+#### - Корневой раздел и swap на зашифрованных разделах LUKS
 #### - Загрузка ядер, модулей и т.п. происходить через UKI из efi раздела
 #### - Установлены твики для драйверов nvidia
 #### - Настроен и включён Secure boot
 #### - Ключ расшифровки раздела с LUKS прописан в tpm
-#### - Настроен PLYMOUTH
+#### - Настроен PLYMOUTH (временно отключён)
 #### - Настроены IPTABLES
 #### - Включен Trim
 #### - AppArmor
@@ -31,24 +61,13 @@
 ## Обозначения:
 ### Машина-клиент -- машина, на которую устанавливают систему
 ### Машина-настройщик -- машина, через которую устанавливают систему по ssh
-## Переменные:
->[!Info]
->Чтобы в последующем не путаться, я некоторые свои данные (Такие, как uuid дисков) переведу в переменные. 
->В принципе, можно на этом этапе передать переменные, чтобы потом не подставлять в тексте
 
->export NVME0N1P1 = A1D9-7475
->export NVME0N1P2 = 9b972571-bffd-4e65-8ae4-db9537b4c26a
-
-## Внимание! Следите за данными, которые тут есть! Например диски могут отличаться, а UUID точно нужно подставлять свои. 
-## Кроме того, следите за железом! Многое может не подойти к той или иной конфигурации ПК
-
-# Часть 0. Подготовка
+# Часть 0. Настройка UEFI
 **1) Если решили заново настроить и нет уже готовых ключей для подписи, то убеждаемся, что Secure-boot сброшен и ключи пусты (Не вернувшиеся в дефолтное состояние, а именно пустые)**
 **2) Проверяем, что для не подписанного arch iso был отключён Secure-boot**
 **3) Проверяем, что TPM включён**
+# Часть 1. Настройка SSH
 
-# Часть 1. Подготовка диска:
-## Подключение по SSH:
 #### Установка через ssh позволяет сразу копировать готовые команды
 **На машине-клиент устанавливаем пароль:**
 ```bash
@@ -62,11 +81,7 @@ ip -br a
 ```bash
 ssh root@<ip машины-клиента, который узнали выше>
 ```
-**Подгружаем локали (переключение будет по shift+ctrl)**
-```bash
-loadkeys ruwin_alt_sh-UTF-8
-```
-
+# Часть 2. Подготовка дисков:
 ## Удаление данных с диска:
 ```bash
 wipefs -a /dev/nvme0n1
@@ -79,8 +94,9 @@ parted /dev/nvme0n1 mklabel gpt
 ```
 **Создаём 2 раздела:**
 ```bash
-parted /dev/nvme0n1 mkpart "EFI system partition" fat32 2048s 2048MiB
-parted /dev/nvme0n1 mkpart "primary partition" 2048MiB 100%
+parted /dev/nvme0n1 mkpart '"EFI system partition"' fat32 2048s 2GiB && \
+parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 16GiB && \
+parted /dev/nvme0n1 mkpart '"system partition"' 16GiB 100%
 ```
 >[!Info]
 >Очень важно, следите за размером секторов на диске! От этого зависит скорость доступа к диску. Если при создании раздела не соблюсти кратность сектора, то контроллер будет чаще обращаться к ячейкам, а значит увеличится и время доступа к данным. В данном случае, минимальный разрешённый сектор у меня 2048s(секторов).
@@ -91,65 +107,67 @@ parted /dev/nvme0n1 mkpart "primary partition" 2048MiB 100%
 
 **Назначаем флаги для разделов (необязательно, но пусть будет):**
 ```bash
-parted /dev/nvme0n1 set 1 esp on
-parted /dev/nvme0n1 set 2 LVM on
+parted /dev/nvme0n1 set 1 esp on && \
+parted /dev/nvme0n1 set 2 swap on
 ```
 **Форматирование раздела под efi:**
 ```bash
 mkfs.fat -F32 /dev/nvme0n1p1
 ```
-## LUKS шифрование раздела:
+## LUKS шифрование разделов:
 LUKS шифрование даёт нам раздел, который полностью закрыт для просмотра, делая из раздела, по сути один большой файл. Его структура похожа на структуру обычного диска с разметкой диска, только вместо разметки диска, у нас заголовок LUKS и ещё есть отдельный раздел для хранения ключей, за счёт чего в LUKS  можно удобно менять пароли (в отличии от того же dm-decrypt, где ключ выбирается один на все файлы)
 Подробнее о моём варианте шифрования можно почитать тут:
 https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUKS
 **Проверяем модули на работоспособность:**
 ```bash
-modprobe dm-crypt
+modprobe dm-crypt && \
 modprobe dm-mod
 ```
-**Шифруем диск в SHA 512:**
+**Шифруем swap раздел:**
 ```bash
-cryptsetup luksFormat -v -s 512 -h sha512 /dev/nvme0n1p2
+cryptsetup -v luksFormat -s 512 -h sha512 /dev/nvme0n1p2
 ```
-**Открываем зашифрованный диск:**
+**Шифруем root раздел в SHA 512:**
 ```bash
-cryptsetup luksOpen /dev/nvme0n1p2 LVM_part
+cryptsetup -v luksFormat -s 512 -h sha512 /dev/nvme0n1p3
 ```
-**Создаём физический общий том:**
+**Открываем зашифрованные разделов:**
 ```bash
-pvcreate /dev/mapper/LVM_part
+cryptsetup luksOpen /dev/nvme0n1p2 swap && \
+cryptsetup luksOpen /dev/nvme0n1p3 root
 ```
-**Создаём группу томов systemvg:**
+**Экспортируем UUID дисков в переменные:**
 ```bash
-vgcreate systemvg /dev/mapper/LVM_part
+export NVME0N1P1=$(lsblk -dno UUID /dev/nvme0n1p1) \
+NVME0N1P2=$(lsblk -dno UUID /dev/nvme0n1p2) \
+NVME0N1P3=$(lsblk -dno UUID /dev/nvme0n1p3)
 ```
-**Создаём логический топ для swap на 16 gb в группе systemvg:**
+**Экспортируем адреса зашифрованных контейнеров:**
 ```bash
-lvcreate -L16G -n swap systemvg
+export ROOT=/dev/mapper/root \
+SWAP=/dev/mapper/swap
 ```
-**Создаём логический том для корневого раздела root на остальное место в группе systemvg:**
-```bash
-lvcreate -l 100%FREE -n root systemvg
-```
->[!Info]
->Очень удобно создавать последний диск параметрической переменной 100%FREE, которая создаёт логический том из оставшегося места
 ## Создание файловых систем в томах:
 **Создание файловой системы swap:** 
 ```bash
-mkswap -L swap /dev/mapper/systemvg-swap
+mkswap -L swap $SWAP
 ```
 **Создание файловой системы f2fs:**
 ```bash
-mkfs.f2fs -f -O extra_attr,inode_checksum,sb_checksum,compression  /dev/mapper/systemvg-root
+mkfs.f2fs -f -O extra_attr,inode_checksum,sb_checksum,compression  $ROOT
 ```
 >[!Info]
 >Для подробностей нужно идти на Archwiki, но тут, как минимум включена полезная компрессия
 >Подробнее тут: https://wiki.archlinux.org/title/F2FS#Compression
 >
 ## Монтирование разделов:
+**Обновление информации о дисках:**
+```bash
+systemctl daemon-reload
+```
 **Монтирование корневого раздела:**
 ```bash
-mount -o compress_algorithm=zstd:6,compress_chksum,gc_merge,lazytime /dev/mapper/systemvg-root /mnt
+mount -o compress_algorithm=zstd:6,compress_chksum,gc_merge,lazytime $ROOT /mnt
 ```
 >[!Info]
 >Раздел смонтирован с рекомендуемыми Archwiki параметрами
@@ -157,18 +175,23 @@ mount -o compress_algorithm=zstd:6,compress_chksum,gc_merge,lazytime /dev/mapper
 
 **Монтирование swap:**
 ```bash
-swapon /dev/mapper/systemvg-swap
+swapon $SWAP
 ```
 **Монтирование efi раздела:**
 ```bash
-mount --mkdir /dev/nvme0n1p1 /mnt/efi
+mount --mkdir -o uid=0,gid=0,fmask=0137,dmask=0027  /dev/nvme0n1p1 /mnt/efi
 ```
+>[!Info]
+>Делаем маску 0077, ради того, чтобы из под обычного пользователя не было доступа к этому разделу. Собственно, systemd-boot при установке про это и говорит
+>``` bash
+!Mount point '/boot' which backs the random seed file is world accessible, which is a security hole! !  
+! Random seed file '/boot/loader/random-seed' is world accessible, which is a security hole! ! ```
+
 **Мой дополнительный диск:**
 ```bash
 mount --mkdir /dev/sdb /mnt/mnt/sdb
-```
-# Часть 2. Начало настройки:
-## Преднастройка:
+>```
+# Часть 3. Установка до подмены корневого раздела:
 
 **Подбор зеркал:**
 Зачастую, стандартный подбор зеркал является неоптимальным. Поэтому с помощью reflector зеркала отсортируем по скорости и типу и сохраним их
@@ -177,17 +200,17 @@ reflector --verbose -l 5 -p https --sort rate --save /etc/pacman.d/mirrorlist
 ```
 **Установка базовых пакетов:**
 ```bash
-pacstrap -K /mnt base base-devel git nano vifm
+pacstrap -K /mnt base base-devel git vi neovim mkinitcpio reflector
 ```
-
 **Генерирование FSTAB:**
 ```bash
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U /mnt > /mnt/etc/fstab
 ```
 **Переход в CHROOT:**
 ```bash
 arch-chroot /mnt
 ```
+# Часть 4. Настройка в подменённом корневом разделе: 
 ### Установка времени:
 **Установка своего часового пояса:**
 ```bash
@@ -267,6 +290,7 @@ rm /etc/sudoers.backup
 ```bash
 passwd vlad
 ```
+
 ## Настройка компилятора и пакетного менеджера:
 **Для мнимой производительности корректируем флаги GCC:**
 ```bash
@@ -282,11 +306,14 @@ sed -i 's/\!lto/lto/g' /etc/makepkg.conf
 
 ### PARU:
 Отличительной особенностью PARU является одновременно и то что он написан на Rust и то что он позволяет достаточно удобно работать с PKGBUILD 
-**Устанавливаем его:**
+**Скачиваем PARU и входим в его каталог:**
 ```bash
-sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru
+sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru && \
 cd /home/vlad/bin/paru/
-sudo -u vlad makepkg -si
+```
+**Создаём пакет, устанавливаем его и переходим обратно в корень**
+```bash
+sudo -u vlad makepkg -si && \
 cd /
 ```
 
@@ -294,6 +321,11 @@ cd /
 ```bash
 sed '/\[bin\]/s/^#//' -i /etc/paru.conf && \
 sed '/FileManager/s/^#//' -i /etc/paru.conf
+sed '/FileManager/s/vifm$/nvim/' -i /etc/paru.conf
+```
+**Заставляем paru держать таймер истечения действия пароля до полного выполнения работы:**
+```bash
+sed '/SudoLoop/s/^#//' -i /etc/paru.conf
 ```
 ### Добавление своего стека репозиториев:
 **Делаем копию pacman.conf:**
@@ -328,6 +360,12 @@ a\\
 }" -i /etc/pacman.conf
 ```
 ALHP репозиторий (Репозиторий скомпилированный под 86-64-v3 архитектуру)
+Обязательно! Перед добавлением в pacman.conf добавляем ключи и зеркала alhp из AUR:
+```bash
+sudo -u vlad paru -Sy alhp-keyring alhp-mirrorlist
+```
+
+Уже потом добавляем в pacman.conf:
 ```bash
 sed '/# Default repositories/i\
 \# ALHP\
@@ -338,31 +376,6 @@ Include = /etc/pacman.d/alhp-mirrorlist\
 Include = /etc/pacman.d/alhp-mirrorlist\
 ' -i /etc/pacman.conf
 ```
-llvm-svn (Репозиторий с последними скомилированными бинарниками llvm)
-```bash
-sed '/# Default repositories/i\
-\# PKGBUILD for the LLVM\
-\[llvm-svn\]\
-\#SigLevel = Never\
-\#Server = https://repos.uni-plovdiv.net/archlinux/\$repo/\$arch\
-' -i /etc/pacman.conf
-```
-mesa-git (Репозиторий с последними скомилированными бинарниками mesa)
-```bash
-sed '/# Default repositories/i\
-\[mesa-git\]\
-\SigLevel = Never\
-\Server = https://pkgbuild.com/~lcarlier/\$repo\/\$arch\
-' -i /etc/pacman.conf
-```
-beta-kde (Репозиторий с beta версией KDE)
-```bash
-sed '/# Default repositories/i\
-\# Beta-kde\
-\[kde-unstable\]\
-\Include = /etc/pacman.d/mirrorlist\
-' -i /etc/pacman.conf
-```
 
 >[!Info]
 >Репозитории написаны в порядке моего приоритета. С каждым новым вводом, следующий репозиторий будет записываться в конец списка
@@ -371,250 +384,79 @@ sed '/# Default repositories/i\
 >Следите за очерёдностью репозиториев. Репозитории расположенные вверху имеют приоритет перед нижними
 
 ### Обновление ключей и репозиториев:
+Обновляем зеркала по скорости уже в chroot:
+```bash
+reflector --verbose -l 5 -p https --sort rate --save /etc/pacman.d/mirrorlist
+```
 **Инициализация:**
 ```bash
-pacman-key --init
-```
-**Получить ключи из репозитория:**
-```bash
-pacman-key --populate archlinux
-```
-**Проверить текущие ключи на актуальность:**
-```bash
-pacman-key --refresh-keys
-```
-**Обновляем список пакетов:**
-```bash
-sudo -u vlad paru -Syu
-```
-### Добавление необходимых ключей:
-**Добавляем ключ LQX сервера:**
-```bash
-pacman-key --keyserver hkps://keyserver.ubuntu.com --recv-keys 9AE4078033F8024D && pacman-key --lsign-key 9AE4078033F8024D
+sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 ```
 ### Добавление пакетов: 
-**Скачиваем необходимые пакеты. Ядро и LQX ядро, микрокод, f2fs пакеты, Nvidia драйвера, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
+**Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
 ```bash
-sudo -u vlad paru -S --needed linux-lts linux-lts-headers linux-firmware f2fs-tools amd-ucode linux-lqx linux-lqx-headers \
- nvidia-beta-dkms nvidia-utils-beta lib32-nvidia-utils-beta vulkan-icd-loader lib32-vulkan-icd-loader nvidia-settings-beta \
- efibootmgr networkmanager man nano lvm2 reflector pipewire pipewire-alsa noto-fonts-cjk ttf-hannom \
- ananicy-cpp wget
+sudo -u vlad paru -S --needed wget man f2fs-tools amd-ucode \
+ efibootmgr networkmanager bluez pipewire pipewire-alsa noto-fonts-cjk ttf-hannom \
+ wl-clipboard
 ```
->[!linux-lqx ядро]
->Так как я хочу самостоятельно компилировать ядро, я добавил в paru возможность редактировать PKGBUILD.
->Тогда при использовании репозитория AUR скачивается версия ядра, которую нужно ещё скомпилировать.
->Когда paru дойдёт до linux-lqx, нам предложат изменить PKGBUILD. Меняем его и добавляем к _menunconfig= символ **y** 
->( Будет **_menunconfig=y**)
->Далее выбираем необходимые флаги. В моём случае:
-> - Выбираем платформу zen2
-> - Отключаем для видеокарты i2c (Видеокарта не поддерживает его)
-> - Отключаем Kernel Debugging
->И продолжаем установку F9
->TODO: точно указать расположение этих флагов
->И продолжаем установку
-
-
-
-> [!INFO]
->Для того, чтобы mkinitcpio не делал предупреждений о отсутствующих модулях, качаем
->этот пакет(Но это не обязательно т.к. оно ни на что не влияет):
->https://wiki.archlinux.org/title/Mkinitcpio#Possibly_missing_firmware_for_module_XXXX
-
-## Первоначальная настройка:
-### Включение сети:
-**Включаем юнит менеджера сети:**
-```bash
-systemctl enable NetworkManager.service
-```
-**Включаем юнит ananicy-cpp:**
-```bash
-systemctl enable ananicy-cpp
-```
-### Редактирование MKINITCPIO:
-**Делаем backup mkinitcpio.conf:**
-```bash
-cp /etc/mkinitcpio.conf /etc/mkinitcpio.conf.backup 
-```
-**Добавляем модули драйверов nvidia и crc32c:**
-```bash
-sed -e 's/\(MODULES=(\)/\1crc32c libcrc32c nvidia nvidia_modeset nvidia_uvm nvidia_drm/' -i /etc/mkinitcpio.conf
-```
->[!Info]
->crc32c и libcrc32c это модули были взяты из Manjaro. 
->По сути является структурой для создания пар ключ-значение, придуманная google и нужна для проверки контрольной суммы файлов
-
-**Редактировать hook mkinitcpio и включаем туда после block хуки lvm2 и encrypt:**
-```bash
-sed -i "/^HOOKS=/ s/\(block\)\(.*\)$/\1 encrypt lvm2\2/" /etc/mkinitcpio.conf
-```
-**Иногда ядро ругается на отсутствие KDFONTOP.  Это, скорее всего из-за нарушения очереди в HOOKS с plymouth:**
-```bash
-sed -e 's/\(BINARIES=(\)/\1setfont/' -i /etc/mkinitcpio.conf
-```
-### Установка HOOKS:
+#### Установка HOOK для микроядра:
 **Если папка не создалась, то создать:**
 ```bash
 mkdir /etc/pacman.d/hooks
 ```
-**Hook для Пересборки модулей ядра с драйверами nvidia при обновлении ядра**
+**Hook для для раннего обновления микрокода в mkinitcpio:**
 ```bash
-cat << _EOF_ > /etc/pacman.d/hooks/nvidia.hook
+cat << _EOF_ > /etc/pacman.d/hooks/ucode.hook
 [Trigger]
 Operation=Install
 Operation=Upgrade
 Operation=Remove
 Type=Package
-Target=nvidia-dkms-beta
-Target=linux-lts
-Target=linux-lqx
-# Измените "linux" в строках Target и Exec, если вы используете другое ядро
-# Если есть дополнительное ядро, то добавьте новым Target
+# Change to appropriate microcode package
+Target=amd-ucode
+# Change the linux part above and in the Exec line if a different kernel is used
+Target=linux*
 
 [Action]
-Description=Update NVIDIA module in initcpio
+Description=Update Microcode module in initcpio
 Depends=mkinitcpio
+Depends=sbctl
 When=PostTransaction
 NeedsTargets
-Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux-lts|linux-lqx) exit 0; esac; done; /usr/bin/mkinitcpio -P'
-# Если есть дополнительное ядро, то добавьте его через | 
+Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux*) exit 0; esac; done; /usr/bin/mkinitcpio -P; /usr/bin/sbctl sign-all'
 _EOF_
 ```
-> [!INFO]
->Измените "linux" в строках Target и Exec, если вы используете другое ядро
->Если есть дополнительное ядро, то добавьте новым Target
-
-**Hook для обновления микрокода:**
+>[!Warning]
+>Позднее обновление микрокода, начиная с ядра 5.19 стало небезопасным и по умолчанию оно отключено. Поэтому часть про позднее обновление я удалил.
+>(Написал, чтобы не забыть и опять не выписать из переведённого вики)
+## Первоначальная настройка:
+### Включение сеть и bluetooth:
+**Включаем юнит менеджера сети и bluetooth:**
 ```bash
-cat << _EOF_ > /etc/pacman.d/hooks/microcode_reload.hook
-[Trigger]
-Operation = Install
-Operation = Upgrade
-Operation = Remove
-Type = File
-Target = usr/lib/firmware/amd-ucode/*	
+systemctl enable NetworkManager.service && \
+systemctl enable bluetooth.service
+```
+### Редактирование MKINITCPIO:
+**Копируем mkinitcpio.conf в mkinitcpio.conf.d:**
+```bash
+cp /etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/mkinitcpio.conf 
+```
 
-[Action]
-Description = Applying CPU microcode updates...
-When = PostTransaction
-Depends = sh
-Exec = /bin/sh -c 'echo 1 > /sys/devices/system/cpu/microcode/reload'
+**Редактировать hook mkinitcpio и включаем туда модули systemd и после block хуки sd encrypt и resume:**
+```bash
+sed -i '/^HOOKS=/ s/udev/systemd/' /etc/mkinitcpio.conf.d/mkinitcpio.conf  && \
+sed -i '/^HOOKS=/ s/keymap consolefont/sd-vconsole/' /etc/mkinitcpio.conf.d/mkinitcpio.conf && \
+sed -i "/^HOOKS=/ s/\(block\)\(.*\)$/\1 sd-encrypt resume\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf
+```
+**Добавляем /etc/crypttab.initramfs: **
+```bash
+cat << _EOF_ > /etc/crypttab.initramfs
+# Mount /dev/mapper/swap re-encrypting it with a fresh key each reboot
+swap UUID=$NVME0N1P2 none timeout=180,tpm2-device=auto,discard
+# Mount /dev/mapper/root with the key from TPM
+root UUID=$NVME0N1P3 none timeout=180,tpm2-device=auto,discard
 _EOF_
 ```
-
-
-
-## NVIDIA TWEAKS
-Множественные исправления, большую часть которых взял отсюда (https://github.com/ventureoo/nvidia-tweaks)
-Исправляет следующее:
-- потеря памяти в спящем режиме nvidia-beta-dkms
-- добавляет поддержку PAT
-- "потенциально" ускоряет производительность за счёт безопасности (Если выберите безопасность, то закомментируйте NVreg_InitializeSystemMemoryAllocations)
-и т.п. 
-Всё расписано в самом конфиге, либо же, можно посмотреть на самом гитхабе выше.
-
-Закомментируемы некоторые опции, т.к. лично у меня они либо не нужны, либо не поддерживаются, либо вовсе влекут за собой проблемы. 
-Закомментированы следующие:
-- NVreg_EnableResizableBar т.к. моё устройство не поддерживает resizable bar
-- NVreg_TemporaryFilePath т.к. не без него ждущий режим работает хорошо, а сама опция подразумевает лишнее использование циклов записи для устройства хранения
-- NVreg_RegistryDwords т.к. вроде как необходим для некоторых ноутбуков для правильного отображения nvidia-settings и он мне не нужен
-- NVreg_EnableGpuFirmware т.к. лично у меня этот параметр ломает выход из спящего режима видеокарты
-**Добавляем в modprobe.d:**
-```bash
-cat << _EOF_ > /etc/modprobe.d/nvidia-tweaks.conf
-options nvidia NVreg_PreserveVideoMemoryAllocations=1
-#
-# Allow to preserve memory allocations (Required to properly wake up from sleep mode)
-
-#options nvidia NVreg_TemporaryFilePath=/var/tmp
-#
-# Msy help with suspend issue. Turn on if suspend not working.
-
-options nvidia NVreg_UsePageAttributeTable=1
-#
-# NVreg_UsePageAttributeTable=1 (Default 0) - Activating the better
-# memory management method (PAT). The PAT method creates a partition type table
-# at a specific address mapped inside the register and utilizes the memory architecture
-# and instruction set more efficiently and faster.
-# If your system can support this feature, it should improve CPU performance.
-
-options nvidia NVreg_InitializeSystemMemoryAllocations=0
-#
-# NVreg_InitializeSystemMemoryAllocations=0 (Default 1) - Disables
-# clearing system memory allocation before using it for the GPU.
-# Potentially improves performance, but at the cost of increased security risks.
-# Write "options nvidia NVreg_InitializeSystemMemoryAllocations=1" in /etc/modprobe.d/nvidia.conf,
-# if you want to return the default value.
-# Note: It is possible to use more video memory (?)
-
-options nvidia NVreg_EnableStreamMemOPs=1
-#
-# NVreg_EnableStreamMemOPs=1 (Default 0) - Activates the support for
-# CUDA Stream Memory Operations in user-mode applications.
-
-#options nvidia NVreg_RegistryDwords=__REGISTRYDWORDS
-#
-# Need for some notebooks, for correctly open nvidia-settings?
-
-softdep nvidia post: nvidia-uvm
-#
-# Make a soft dependency for nvidia-uvm as adding the module loading to
-# /usr/lib/modules-load.d/nvidia-uvm.conf for systemd consumption, makes the
-# configuration file to be added to the initrd but not the module, throwing an
-# error on plymouth about not being able to find the module.
-# Ref: /usr/lib/dracut/modules.d/00systemd/module-setup.sh
-
-# Even adding the module is not the correct thing, as we don't want it to be
-# included in the initrd, so use this configuration file to specify the
-# dependency.
-
-options nvidia NVreg_EnableStreamMemOPs=1
-options nvidia NVreg_DynamicPowerManagement=0x02
-options nvidia NVreg_EnableS0ixPowerManagement=1
-#
-# Enable complete power management. From:
-# file:///usr/share/doc/nvidia-driver/html/powermanagement.html
-
-#options nvidia NVreg_EnableResizableBar=1
-#
-#https://www.nvidia.com/en-us/geforce/news/geforce-rtx-30-series-resizable-bar-support/
-# Working just for RTX 3xxx series and CPU since amd ryzen 5xxx\ intel 10th gen
-# So you can enable it, if you have it
-#(also, you need enable resizable bar in the motherboard)
-
-#options nvidia NVreg_EnableGpuFirmware=1
-# (May crash suspend. Need to check)
-# GSP (GPU System Processor) - this is a special chip which is present on NVIDIA video cards starting
-# from Turing and above, which offloads GPU initialization and control tasks, which are usually
-#performed on CPU. This should improve performance and reduce the load on the CPU.
-#WARNING: I strongly suggest forcing the use of GSP firmware only on the most recent driver, as the first
-#releases with its support may contain certain problems. Only starting from 530 you will have support
-#for suspend and resume when using GSP firmware. This feature can also work badly on PRIME configurations,
-#so please check dmesg logs for errors if you want to use this.
-
-blacklist nouveau
-#
-# Nouveau must be blacklisted here as well beside from the initrd to avoid a
-# delayed loading (for example on Optimus laptops where the Nvidia card is not
-# driving the main display).
-
-#blacklist i2c_nvidia_gpu
-#
-# If the video card does not have type-c, and support is included in the drivers, then you can mute it
-_EOF_
-```
-
-**Включаем suspend от nvidia:**
-```bash
-systemctl enable nvidia-suspend
-```
-**Включаем hibernate от nvidia:**
-```bash
-systemctl enable nvidia-hibernate
-```
-> [!INFO]
->Можно и не включать, если не используете гибернацию. 
->Лично я включил только ради того, чтобы кнопка в пуске работала штатно, если когда-нибудь её нажму
-
 ### Установка SECURE BOOT:
 ```bash
 sudo -u vlad paru -S  sbctl
@@ -631,49 +473,49 @@ sbctl create-keys
 ```bash
 sbctl enroll-keys --microsoft
 ```
-
+>[!Info]
+>Если secure boot не очищенный, UEFI не даст накатить ключи. Если до этого Secure boot был забыт, можно пока пропустить этот шаг. При перезагрузке удалить ключи и уже потом накатывать
+## Ядра:
 ### Установка UKI:
+
 **Добавить опции основного ядра в cmdline:**
 ```bash
-echo "options page_alloc.shuffle=1 cryptdevice=UUID=$NVME0N1P2:LVM_part:allow-discards root=/dev/systemvg/root rootflags=atgc rw nvidia_drm.modeset=1" >> \
-/etc/kernel/cmdline
+cat << _EOF_ > /etc/kernel/cmdline
+options page_alloc.shuffle=1 root=$ROOT rootflags=atgc resume=$SWAP rw
+_EOF_
 ```
 >[!Info]
 >**page_alloc.shuffle=1** - Этот параметр рандомизирует свободные списки
 > распределителя страниц. Улучшает производительность при работе с ОЗУ с очень быстрыми накопителями (NVMe, Optane). Подробнее [тут](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e900a918b0984ec8f2eb150b8477a47b75d17692).
 >Доп. информация здесь: https://ventureo.codeberg.page/source/kernel-parameters.html
->**cryptdevice**= - опция, указывающая какой LUKS раздел открывать
->**:allow-discards** - параметр опции, разрешающий trim
 >**root=** - опция, указывающая какой раздел грузить как root (в данном случае это логический диск)
+>resume= -опция, показывающий системе swap раздел, необходимый при сне.
 >**rootflags=atgc** - опцию, которую я не расшифровал, но тут написано зачем оно:https://wiki.archlinux.org/title/F2FS#Remounting_impossible_with_some_options
 >**rw** - разрешение на чтение запись раздела
->**nvidia_drm.modeset=1** - разрешение ранней загрузки видеоядра
-
->[!Info]
->В **cryptdevice=UUID=9b972571-bffd-4e65-8ae4-db9537b4c26a** должен быть UUID самого luks раздела. Тут можно легко запутаться и вставить не тот UUID. Если это случилось и система потом не грузиться, то просто через arch iso опять подключаетесь и меняем на нужный UUID
 
 **Добавим опции для вспомогательного ядра (В итоге, он как запасной имеет минимальные для загрузки параметры, например будет в дальнейшем без plymouth параметров):**
 ```bash
-echo "options page_alloc.shuffle=1 cryptdevice=UUID=$NVME0N1P2:LVM_part:allow-discards root=/dev/systemvg/root rootflags=atgc rw nvidia_drm.modeset=1" >> \
-/etc/kernel/cmdline-base
+cat << _EOF_ > /etc/kernel/cmdline-base
+options page_alloc.shuffle=1 root=$ROOT rootflags=atgc resume=$SWAP rw
+_EOF_
 ```
 **Для каждого ядра изменить пресеты( например, в linux.preset будет cmdline-base):**
 ```bash
 cat << _EOF_ > /etc/mkinitcpio.d/linux-lts.preset
 # mkinitcpio preset file for the 'linux' package
 
-ALL_config="/etc/mkinitcpio.conf"
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
 ALL_kver="/boot/vmlinuz-linux-lts"
 ALL_microcode=(/boot/*-ucode.img)
 
 PRESETS=('default' 'fallback')
 
-#default_config="/etc/mkinitcpio.conf"
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
 #default_image="/boot/initramfs-linux-lts.img"
 default_uki="/efi/EFI/Linux/arch-linux-lts.efi"
 default_options="--cmdline /etc/kernel/cmdline-base"
 
-#fallback_config="/etc/mkinitcpio.conf"
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
 #fallback_image="/boot/initramfs-linux-lts-fallback.img"
 fallback_uki="/efi/EFI/Linux/arch-linux-lts-fallback.efi"
 fallback_options="-S autodetect"
@@ -684,208 +526,202 @@ _EOF_
 cat << _EOF_ > /etc/mkinitcpio.d/linux-lqx.preset
 # mkinitcpio preset file for the 'linux-lqx' package
 
-ALL_config="/etc/mkinitcpio.conf"
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
 ALL_kver="/boot/vmlinuz-linux-lqx"
 ALL_microcode=(/boot/*-ucode.img)
 
 PRESETS=('default' 'fallback')
 
-#default_config="/etc/mkinitcpio.conf"
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
 #default_image="/boot/initramfs-linux-lqx.img"
 default_uki="/efi/EFI/Linux/arch-linux-lqx.efi"
-default_options=""
+default_options="--cmdline /etc/kernel/cmdline"
 
-#fallback_config="/etc/mkinitcpio.conf"
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
 #fallback_image="/boot/initramfs-linux-lqx-fallback.img"
 fallback_uki="/efi/EFI/Linux/arch-linux-lqx-fallback.efi"
 fallback_options="-S autodetect"
 _EOF_
 ```
-**Пересобираем ядра уже в EFI:**
+
+Если планируется обычное linux ядро, то и это:
 ```bash
-mkinitcpio -P
+cat << _EOF_ > /etc/mkinitcpio.d/linux.preset
+# mkinitcpio preset file for the 'linux' package
+
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux"
+ALL_microcode=(/boot/*-ucode.img)
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#default_image="/boot/initramfs-linux.img"
+default_uki="/efi/EFI/Linux/arch-linux.efi"
+default_options="--cmdline /etc/kernel/cmdline"
+
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#fallback_image="/boot/initramfs-linux-fallback.img"
+fallback_uki="/efi/EFI/Linux/arch-linux-fallback.efi"
+fallback_options="-S autodetect"
+_EOF_
 ```
-**Из-за ненадобности удаляем initramfs-linux из boot, т.к. отныне, это всё будет в efi файле:**
+Если планируется  linux-zen ядро, то и это:
 ```bash
-rm /boot/initramfs-linux*
+cat << _EOF_ > /etc/mkinitcpio.d/linux-zen.preset
+# mkinitcpio preset file for the 'linux-zen' package
+
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux-zen"
+ALL_microcode=(/boot/*-ucode.img)
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#default_image="/boot/initramfs-linux-zen.img"
+default_uki="/efi/EFI/Linux/arch-linux-zen.efi"
+default_options="--cmdline /etc/kernel/cmdline"
+
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#fallback_image="/boot/initramfs-linux-zen-fallback.img"
+fallback_uki="/efi/EFI/Linux/arch-linux-zen-fallback.efi"
+fallback_options="-S autodetect"
+_EOF_
+```
+Если планируется  linux-mainline ядро, то и это:
+```bash
+cat << _EOF_ > /etc/mkinitcpio.d/linux-mainline.preset
+# mkinitcpio preset file for the 'linux-mainline' package
+
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux-mainline"
+ALL_microcode=(/boot/*-ucode.img)
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#default_image="/boot/initramfs-linux-mainline.img"
+default_uki="/efi/EFI/Linux/arch-linux-mainline.efi"
+default_options="--cmdline /etc/kernel/cmdline"
+
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#fallback_image="/boot/initramfs-linux-mainline-fallback.img"
+fallback_uki="/efi/EFI/Linux/arch-linux-mainline-fallback.efi"
+fallback_options="-S autodetect"
+_EOF_
+```
+Если планируется  linux-git ядро, то и это:
+```bash
+cat << _EOF_ > /etc/mkinitcpio.d/linux-git.preset
+# mkinitcpio preset file for the 'linux-git' package
+
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux-git"
+ALL_microcode=(/boot/*-ucode.img)
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#default_image="/boot/initramfs-linux-git.img"
+default_uki="/efi/EFI/Linux/arch-linux-git.efi"
+default_options="--cmdline /etc/kernel/cmdline"
+
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#fallback_image="/boot/initramfs-linux-git-fallback.img"
+fallback_uki="/efi/EFI/Linux/arch-linux-git-fallback.efi"
+fallback_options="-S autodetect"
+_EOF_
+```
+Если планируется  linux-hardened ядро, то и это:
+```bash
+cat << _EOF_ > /etc/mkinitcpio.d/linux-hardened.preset
+# mkinitcpio preset file for the 'linux-hardened' package
+
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux-hardened"
+ALL_microcode=(/boot/*-ucode.img)
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#default_image="/boot/initramfs-linux-hardened.img"
+default_uki="/efi/EFI/Linux/arch-linux-hardened.efi"
+default_options="--cmdline /etc/kernel/cmdline"
+
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf "
+#fallback_image="/boot/initramfs-linux-hardened-fallback.img"
+fallback_uki="/efi/EFI/Linux/arch-linux-hardened-fallback.efi"
+fallback_options="-S autodetect"
+_EOF_
+```
+**Устанавливаем сами ядра :**
+```bash
+sudo -u vlad paru -S --needed linux-lqx linux-lqx-headers linux-lqx-docs linux-lts linux-lts-docs linux-lts-headers mkinitcpio-firmware
 ```
 
+>[!Note]
+>Ставлю только linux-lqx-headers, т.к linux-lqx-headers и linux-lqx-docs подтягивают linux-lqx
+>(Но нужно попробовать с этим пожить. Возможно лучше будет отдельно linux-lqx ставить)
+
+>[!linux-lqx ядро]
+>Так как я хочу самостоятельно компилировать ядро, я добавил в paru возможность редактировать PKGBUILD.
+>Тогда при использовании репозитория AUR скачивается версия ядра, которую нужно ещё скомпилировать.
+>Когда paru дойдёт до linux-lqx, нам предложат изменить PKGBUILD. Меняем его и добавляем к _menunconfig= символ **y** 
+>( Будет **_menunconfig=y**)
+>Далее выбираем необходимые флаги. В моём случае:
+> - Выбираем платформу zen2
+> - Отключаем Kernel Debugging
+> - В General Setup внутренние параметры удаляем audit=0  (Если хотим использовать Apparmor с аудитом)
+> - В Security выбираем Apparmor
+> - В LSM вписываем строку landlock,lockdown,yama,integrity,apparmor,bpf
+>И продолжаем установку F9
+>TODO: точно указать расположение этих флагов
+>И продолжаем установку
+
+> [!INFO]
+>Для того, чтобы mkinitcpio не делал предупреждений о отсутствующих модулях, я поставил
+>этот пакет(Но это не обязательно т.к. оно ни на что не влияет):
+>https://wiki.archlinux.org/title/Mkinitcpio#Possibly_missing_firmware_for_module_XXXX
+**Подбор зеркал в chroot:**
+Cортируем по скорости и типу уже в chroot:
 ### Подпись файлов efi созданными ключами:
 **Подписываем linux efi приложения с зашитыми ядрами, модулями, конфигами и т.п.:**
 ```bash
 sbctl sign -s /efi/EFI/Linux/arch-linux-lts.efi && \
 sbctl sign -s /efi/EFI/Linux/arch-linux-lts-fallback.efi && \
 sbctl sign -s /efi/EFI/Linux/arch-linux-lqx.efi && \
-sbctl sign -s /efi/EFI/Linux/arch-linux-lqx-fallback.efi
+sbctl sign -s /efi/EFI/Linux/arch-linux-lqx-fallback.efi && \
+sbctl sign -s /efi/EFI/Linux/arch-linux.efi && \
+sbctl sign -s /efi/EFI/Linux/arch-linux-fallback.efi
 ```
 > [!INFO]
 > sbctl создаёт после этого hook, который будет постоянно их подписывать)
 
-**Подписываем Windows файлы:**
+## **Настройки для видеокарты NVIDIA:**
+Если видеокарта не имеет type-c, чтобы избавиться от ошибок можно его замутить
+**Добавляем в modprobe.d:**
 ```bash
-sbctl sign -s /efi/EFI/Boot/bootx64.efi && \
-sbctl sign -s /efi/EFI/Microsoft/Boot/bootmgfw.efi && \
-sbctl sign -s /efi/EFI/Microsoft/Boot/bootmgr.efi && \
-sbctl sign -s /efi/EFI/Microsoft/Boot/memtest.efi
+cat << _EOF_ > /etc/modprobe.d/blacklist_i2c.conf
+blacklist i2c_nvidia_gpu
+#
+# If the video card does not have type-c, and support is included in the drivers, then you can mute it
+_EOF_
 ```
+### [[NVIDIA]]
+### [[Nouveau]]
 
 ## Загрузчики:
-
-### Systemd-boot:
+### [[Systemd-boot]]
+## [[GRUB]]
+## [[Запись UKI в UEFI]]
+## Пересобираем ядра уже в EFI:
 ```bash
-bootctl install
+mkinitcpio -P ; sbctl sign-all
 ```
-**Подписываем systemd-boot файл:**
+### Подпись файлов efi созданными ключами:
+**Подписываем Windows файлы:**
 ```bash
-sbctl sign -s /efi/EFI/systemd/systemd-bootx64.efi
-```
-#### Конфигурируем systemd-boot:
-**В папке loader создать и настроить:**
-```bash
-cat << _EOF_ > /efi/loader/loader.conf
-default arch-linux-lqx.efi
-timeout 10
-console-mode max
-editor 1
-_EOF_
-```
-> [!INFO]
-> Далее будет grub, который можно установить либо рядом, либо как замену
-
-### GRUB
-```bash
- sudo -u vlad paru -S grub grub-customizer
-```
-> [!INFO]
-Внимание: os-prober в плане безопасности специально отключено в grub (В /etc/default/grub написано почему изначально os_prober отключён: "Probing for other operating systems is disabled for security reasons. ")
-Поэтому просто самостоятельно добавляем windows в /etc/grub.d/, просто беря за основу саму записалось из os-prober
-
-**Windows bootloader:**
-```bash
-cat << _EOF_ > /etc/grub.d/31_windows
-#! /bin/sh
-set -e
-
-# Windows bootloader
-
-cat << EOF
-    menuentry 'Windows Boot Manager' --class windows {
-        insmod part_gpt
-        insmod fat
-        search --no-floppy --fs-uuid --set=root B4DD-4624
-        chainloader /EFI/Microsoft/Boot/bootmgfw.efi
-    }
-EOF
-_EOF_
- && \
-chmod 755 /etc/grub.d/31_windows
-```
->[!Info]
->B4DD-4624 -- это UUID раздела где находиться загрузчик windows.
->Далее для linux это буде раздел с EFI контейнерами
-
-#### Сами EFI Linux:
-**Linux-lqx:**
-```bash
-cat << _EOF_ > /etc/grub.d/11_linux-lqx
-#! /bin/sh
-set -e
-
-# Linux-lqx UKI
-
-cat << EOF
-    menuentry 'Arch Linux lqx' --class arch --class gnu-linux --class gnu {
-        load_video
-        set gfxpayload=keep
-        insmod part_gpt
-        insmod fat
-        search --no-floppy --fs-uuid --set=root $NVME0N1P1
-        chainloader /EFI/Linux/arch-linux-lqx.efi
-    }
-    submenu 'Дополнительные параметры для Arch Linux lqx' {
-        menuentry 'Arch Linux Fallback lqx' --class arch --class gnu-linux --class gnu {
-            load_video
-            set gfxpayload=keep
-            insmod part_gpt
-            insmod fat
-            search --no-floppy --fs-uuid --set=root $NVME0N1P1
-            chainloader /EFI/Linux/arch-linux-lqx-fallback.efi
-        }
-    }
-EOF
-_EOF_
- && \
-chmod 755 /etc/grub.d/11_linux-lqx
-```
-**Linux-lts:**
-```bash
-cat << _EOF_ > /etc/grub.d/12_linux-lts
-#! /bin/sh
-set -e
-
-# Linux-lts UKI
-
-cat << EOF
-    menuentry 'Arch Linux lts' --class arch --class gnu-linux --class gnu {
-        load_video
-        set gfxpayload=keep
-        insmod part_gpt
-        insmod fat
-        search --no-floppy --fs-uuid --set=root $NVME0N1P1
-        chainloader /EFI/Linux/arch-linux-lts.efi
-    }
-    submenu 'Дополнительные параметры для Arch Linux lts' {
-        menuentry 'Arch Linux Fallback lts' --class arch --class gnu-linux --class gnu {
-            load_video
-            set gfxpayload=keep
-            insmod part_gpt
-            insmod fat
-            search --no-floppy --fs-uuid --set=root $NVME0N1P1
-            chainloader /EFI/Linux/arch-linux-lts-fallback.efi
-        }
-    }
-EOF
-_EOF_
- && \
-chmod 755 /etc/grub.d/12_linux-lts
-```
-**Перемещаем лишние скрипты в бэкап папку:**
-```bash
-mkdir /etc/grub.d/grub_backup && \
-mv /etc/grub.d/10_linux /etc/grub.d/20_linux_xen /etc/grub.d/grub_backup
-```
-**Устанавливаем и генерируем grub:**
-```bash
-grub-install --efi-directory=/efi --boot-directory=/efi --bootloader-id=GRUB --modules="tpm" --disable-shim-lock --debug
-grub-mkconfig -o /efi/grub/grub.cfg 
-```
-**Подписываем файлы:**
-```bash
-sbctl sign -s /efi/EFI/BOOT/BOOTX64.EFI && sudo sbctl sign -s /efi/EFI/GRUB/grubx64.efi 
-```
-#### Тема:
-**distro-grub-themes\\asrock:**
-```bash
-cd /home/vlad/bin
-wget https://github.com/AdisonCavani/distro-grub-themes/raw/master/themes/asrock.tar
-mkdir ./asrock
-
-tar -C /home/vlad/bin/asrock -xvf /home/vlad/bin/asrock.tar
-cp -r /home/vlad/bin/asrock /efi/grub/themes/
-
-sed '/GRUB_THEME/s/^#//' -i /etc/default/grub && \
-sed -i 's|GRUB_THEME="/path/to/gfxtheme"|GRUB_THEME=/efi/grub/themes/asrock/theme.txt|' /etc/default/grub && \
-sed -i 's|GRUB_GFXMODE=auto|GRUB_GFXMODE=1920x1080|' /etc/default/grub
-```
-
-## Без загрузчика:
-> [!INFO]
-> Т.к. мы используем UKI, можно сделать загрузку напрямую без загрузчика из UEFI
-> Есть минусы:
-> - Не будут работать такие вещи как fwupd
-> - Не будет никаких дополнительных вариантов загрузки
-```bash
-efibootmgr --create --disk /dev/nvme0n1 --part 1 --label "Arch Linux" --loader 'EFI\Linux\arch-linux-lqx.efi' --unicode
+sbctl sign -s /efi/EFI/Boot/bootx64.efi
 ```
 
 ## UEFI приложения:
@@ -920,11 +756,11 @@ _EOF_
 ### fwupd:
 **Установка:**
 ```bash
-paru -S fwupd
+sudo -u vlad paru -S --needed fwupd
 ```
 **Подписываем:**
 ```bash
-sbctl sign -s /efi/EFI/Linux/fwupd.efi
+sbctl sign -s /usr/lib/fwupd/efi/fwupdx64.efi
 ```
 **Добавляем триггер для подписи fwupd при его обновлении:**
 ```bash
@@ -933,7 +769,7 @@ cat << _EOF_ >> /etc/pacman.d/hooks/sign-fwupd-secureboot.hook
 Operation = Install
 Operation = Upgrade
 Type = Path
-Target = usr/lib/fwupd/efi/fwupdx64.efi
+Target = /usr/lib/fwupd/efi/fwupdx64.efi
 
 [Action]
 When = PostTransaction
@@ -942,113 +778,200 @@ Depends = sbctl
 _EOF_
 ```
 ## Постзагрузка:
+>[!Warning]
+>Часть инструкций ломает внешние шрифты. Пока не добавлять при установке
 ### Plymouth:
-**Установка:**
-```bash
-sudo -u vlad paru -S plymouth plymouth-theme-arch-bgrt
-```
 **В cmdline добавить:**
 ```bash
-sed -i -e 's/$/ loglevel=3 quiet splash rd.udev.log_priority=3 vt.global_cursor_default=0/' /etc/kernel/cmdline
+sed -i -e 's/$/ loglevel=3 quite splash rd.udev.log_priority=3 vt.global_cursor_default=0/' /etc/kernel/cmdline
 ```
 **В hook в mkinitcpio после udev вставить plymouth:**
 ```bash
-sed -i "/^HOOKS=/ s/\(udev\)\(.*\)$/\1 plymouth\2/" /etc/mkinitcpio.conf
+sed -i "/^HOOKS=/ s/\(systemd\)\(.*\)$/\1 plymouth\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf 
 ```
 > [!INFO]
 > У nvidia plymouth появляется довольно поздно и это нормально. 
 > Всё из-за поздней загрузки kms
-
+### Настройка plymouth:
+**Установка пакетов:**
+```bash
+sudo -u vlad paru -S plymouth plymouth-theme-arch-bgrt
+```
 **Выбираем тему arch-bqrt:**
 ```
 plymouth-set-default-theme -R arch-bgrt
 ```
-### Настройка plymouth:
-### Гибернация:
-**В hook в mkinitcpio после lvm2 вставляем resume:**
-```bash
-sed -i "/^HOOKS=/ s/\(lvm2\)\(.*\)$/\1 resume\2/" /etc/mkinitcpio.conf
-```
-**В cmdline добавляем resume:**
-sed -i -e 's/$/ resume=\/dev\/systemvg\/swap/' /etc/kernel/cmdline
 ## Начало настройки рабочего окружения:
 
-### Связываем рабочие папки с дополнительным диском:
-**Добавить ссылки Загрузок, документов И Т.П. с дополнительного диска на основную папку:**
+#### Украшаем окно приветствия:
 ```bash
-ln -s /mnt/sdb/Изображения /home/vlad/ && \
-ln -s /mnt/sdb/Видео /home/vlad/ && \
-ln -s /mnt/sdb/Загрузки /home/vlad/ && \
-ln -s /mnt/sdb/Документы /home/vlad/ && \
-ln -s /mnt/sdb/Музыка /home/vlad/
-```
-> [!INFO]
-> Только если Вам действительно нужно, чтобы эти папки были на другом диске
-
-## Графические окружения:
-> [!INFO]
-> Желательно выбрать одно из окружений, т.к. при параллельном использовании одно окружение может влиять на другое
-
-### KDE:
-**Установка:**
-```bash
-sudo -u vlad paru -S --needed plasma-meta sddm-git plasma-wayland-session egl-wayland xorg-xwayland xorg-xlsclients qt5-wayland glfw-wayland kde-system-meta ark filelight kalk kate kcharselect kclock kdebugsettings kdf kdialog keditbookmarks keysmith kfind kgpg konsole krecorder ktimer kweather markdownpart sweeper yakuake  kbackup kteatime kdeconnect ktorrent ufw
-```
-**Включение экранного менеджера:**
-```bash
-systemctl enable sddm.service
-```
-#### Для плавного перехода plymouth, нужно прописать следующее:
-**Для начала создаём папку, если её нет:**
-```bash
-mkdir /etc/systemd/system/display-manager.service.d
-```
-**Добавляем юнит:**
-```bash
-cat << _EOF_ > /etc/systemd/system/display-manager.service.d/plymouth.conf
-[Unit]
-Conflicts=plymouth-quit.service
-After=plymouth-quit.service rc-local.service plymouth-start.service systemd-user-sessions.service
-OnFailure=plymouth-quit.service
-
-[Service]
-ExecStartPre=-/usr/bin/plymouth deactivate
-ExecStartPost=-/usr/bin/sleep 30
-ExecStartPost=-/usr/bin/plymouth quit --retain-splash
+cat << _EOF_ >> /etc/issue
+ \e[H\e[2J
+           \e[1;36m.
+          \e[1;36m/#\
+         \e[1;36m/###\      \e[1;37m               #     \e[1;36m| *
+        \e[1;36m/p^###\     \e[1;37m a##e #%" a#"e 6##%  \e[1;36m| | |-^-. |   | \ /
+       \e[1;36m/##P^q##\    \e[1;37m.oOo# #   #    #  #  \e[1;36m| | |   | |   |  X
+      \e[1;36m/##(   )##\   \e[1;37m%OoO# #   %#e" #  #  \e[1;36m| | |   | ^._.| / \ \e[0;37mTM
+     \e[1;36m/###P   q#,^\
+    \e[1;36m/P^         ^q\ \e[0;37mTM
 _EOF_
 ```
-**SDDM под wayland:**
+https://wiki.archlinux.org/title/ASCII_art
 ```bash
-cat << _EOF_ >/etc/sddm.conf.d/10-wayland.conf
-[General]
-DisplayServer=wayland
-GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
+cat << _EOF_ > /etc/issue
+fortune -a | fmt -80 -s | $(shuf -n 1 -e cowsay cowthink) -$(shuf -n 1 -e b d g p s t w y) -f $(shuf -n 1 -e $(cowsay -l | tail -n +2)) -n
+_EOF_
+```
+### Avahi
+
+>[!Info]
+Компонент тоже важный. Вообще в системе уже стоит systemd-resolved,но avahi устанавливается неявно вместе с pipewire, поэтому, отмечаю его отдельно, чтобы не потерялcя
+Что это: Avahi is a free Zero-configuration networking (zeroconf) implementation, including a system for multicast DNS/DNS-SD service discovery. It allows programs to publish and discover services and hosts running on a local network with no specific configuration. For example you can plug into a network and instantly find printers to print to, files to look at and people to talk to. It is licensed under the GNU Lesser General Public License (LGPL).
+
+>[!Что он делает:]
+Avahi provides local hostname resolution using a "hostname.local" naming scheme.
+
+**Установка:**
+```bash
+sudo -u vlad paru -S --needed avahi nss-mdns
+```
+
+**Отключаем systemd-resolved:**
+```bash
+systemctl disable systemd-resolved.service
+```
+**Включаем avahi-daemon.service:**
+```bash
+systemctl enable avahi-daemon.service
+```
+
+>[!Info]
+Есть аналог от systemd — systemd-resolved, но, т.к. pipewire в зависимостях требует именно avahi, и какого-то отдельного смысла в systemd-resolved нет (Кроме как убрать иконки avahi из DE), я не буду его заменять.
+Плюс у systemd-resolved, в отличии от Avahi есть ограничения, например он имеет ограниченный resolvconf  интерфейс, и может много что с ним не работать.
+### AppArmor
+**Устанавливаем сам apparmor (audit тоже качает ):**
+```bash
+sudo -u vlad paru -S apparmor
+```
+**Запускаем юнит apparmor:**
+```bash
+systemctl enable apparmor.service
+```
+>[!Info]
+Прежде всего нужно убедиться, что ядро поддерживает apparmor
+
+**Прописываем параметры ядра:**
+```bash
+sed -i -e 's/$/ lsm=landlock,lockdown,yama,integrity,apparmor,bpf audit=1 audit_backlog_limit=8192/' /etc/kernel/cmdline
+```
+>[!Info]
+>audit_backlog_limit=8192 используется для предотвращения ошибки:
+>'''bash
+>audit: kauditd hold queue overflow
+>'''
+
+**Обновляем и подписываем ядро:**
+```bash
+mkinitcpio -P ; sbctl sign-all
+```
+#### Для работы уведомлений от Apparmor нужно:
+**Устанавливаем пакеты:**
+```bash
+sudo -u vlad paru -S --needed python-notify2 python-psutil
+```
+**Создаём группу аудита:**
+```bash
+groupadd -r audit
+```
+**Создаём добавляем юзера в группу аудита:**
+```bash
+gpasswd -a vlad audit
+```
+**Добавляем группу аудита в конфига аудита:**
+```bash
+sed '/log_group = root/s/root/audit/' -i /etc/audit/auditd.conf
+```
+**Создаём папку автостарт, если нет:**
+```bash
+sudo -u vlad mkdir -p home/vlad/.config/autostart
+```
+**Добавляем .desktop файл для уведомления:**
+```bash
+sudo -u vlad bash -c 'cat << _EOF_ >> home/vlad/.config/autostart/apparmor-notify.desktop
+[Desktop Entry]
+Type=Application
+Name=AppArmor Notify
+Comment=Receive on screen notifications of AppArmor denials
+TryExec=aa-notify
+Exec=aa-notify -p -s 1 -w 60 -f /var/log/audit/audit.log
+StartupNotify=false
+NoDisplay=true
+_EOF_'
+```
+**Запускаем аудита:**
+```bash
+systemctl enable auditd.service
+```
+%% TODO проверить и удалить, если в нём нет необходимости %%
+**Создаём файл syslog, если его нет:**
+```
+touch /var/log/syslog
+```
+**Сниманием комментарий с write-cahe:**
+```bash
+sed '/write-cache/s/^#//' -i /etc/apparmor/parser.conf
+```
+## Графические окружения:
+> [!INFO]
+> На этом этапе можно начинать устанавливать графическое окружение желательно выбрать одно из окружений, т.к. при параллельном использовании одно окружение может влиять на другое
+
+[[Gnome]]
+[[KDE]]
+## XDG-USER-DIRS
+%%TODO изменить под Udisks2%%
+Множество программ используют спецификацию XDG, и для таких программ, как файловый менеджер можно прямо указать расположение типовых каталогов (изображения,  документы и т.п.) Это неплохая альтернатива мягким ссылкам
+
+**Установка:**
+```bash
+sudo -u vlad paru -S --needed xdg-user-dirs
+```
+
+**Указываем папки для типовых каталогов:**
+```bash
+sudo -u vlad mkdir home/vlad/.config && \
+sudo -u vlad cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
+# This file is written by xdg-user-dirs-update
+# If you want to change or add directories, just edit the line you're
+# interested in. All local changes will be retained on the next run.
+# Format is XDG_xxx_DIR="$HOME/yyy", where yyy is a shell-escaped
+# homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
+# absolute path. No other format is supported.
+#
+XDG_DESKTOP_DIR="/mnt/sdb/Рабочий стол"
+XDG_DOWNLOAD_DIR="/mnt/sdb/Загрузки"
+XDG_TEMPLATES_DIR="$HOME/Шаблоны"
+XDG_PUBLICSHARE_DIR="$HOME/Общедоступные"
+XDG_DOCUMENTS_DIR="/mnt/sdb/YandexDisk/Компьютер SURFACE-BOOK/Документы"
+XDG_MUSIC_DIR="/mnt/sdb/Музыка"
+XDG_PICTURES_DIR="/mnt/sdb/YandexDisk/Компьютер SURFACE-BOOK/Изображения"
+XDG_VIDEOS_DIR="/mnt/sdb/Видео"
 _EOF_
 ```
 
 ### Шрифты:
 ```bash
-sudo -u vlad paru -S ttf-ubuntu-nerd ttf-spacemono ttf-meslo-nerd-font-powerlevel10k
+sudo -u vlad paru -S --needed ttf-ubuntu-nerd ttf-spacemono ttf-meslo-nerd-font-powerlevel10k
 ```
 
 ### Trim:
-#### Настройка Trim для lvm:
-**Сделать бэкап /etc/lvm/lvm.conf:**
-```bash
-cp /etc/lvm/lvm.conf /etc/lvm/lvm.conf.backup
-```
-**В /etc/lvm/lvm.conf расскомментить issue_discards = 1:**
-```bash
-sed -i 's/# issue_discards = 0/issue_discards = 1/g' -i /etc/lvm/lvm.conf
-```
-
 #### Непрерывный Trim:
 В F2FS по умолчанию включён f2fs, который ведёт себя как непрерывный со своими особенностями
 
 #### Периодический Trim:
 **В /etc/fstab добавить nodiscard:**
 ```bash
-genfstab -U /mnt >> /mnt/etc/fstab
+genfstab -U / >> /etc/fstab
 ```
 **Включение, старт и вывод периодического Trim:**
 ```bash
@@ -1062,7 +985,7 @@ systemctl status fstrim.service
 ### SSH
 **Установка**:
 ```bash
-sudo -u vlad paru -S openssh
+sudo -u vlad paru -S --needed openssh
 ```
 %%
 TODO: надо сюда добавить настройки по безопасности
@@ -1071,7 +994,6 @@ TODO: надо сюда добавить настройки по безопас�
 ```bash
 systemctl enable sshd.service
 ```
-
 ### Перезагружаемся
 > [!INFO]
 Обязательно проверяем, что UKI файлы на 100% собраны и без ошибок
@@ -1080,15 +1002,18 @@ systemctl enable sshd.service
 Нужно в конце сгенерировать mkibitcpio и подписать ядра:
 
 ```bash
-mkinitcpio -P ; sudo sbctl sign-all
+mkinitcpio -P ; sbctl sign-all
 ```
 **Выходим из chroot:**
 ```bash
 exit
 ```
-**Отмонтируем все диски:**
+**Отмонтируем все тома и диски если LVM:**
 ```bash
-umount -a
+umount -Rv /mnt &&\
+swapoff /dev/mapper/swap &&\
+cryptsetup close /dev/mapper/root && \
+cryptsetup close /dev/mapper/swap 
 ```
 
 **Перезагружаемся:**
@@ -1101,7 +1026,7 @@ reboot
 ---
 # Всё что ниже нужно делать уже после перезагрузки системы
 ___
-# Часть 3. Продолжение настройки настройки:
+# Часть 5. Настройка после загрузки со своего ядра:
 ## Повторное подключение по SSH:
 
 **На машине-клиент снова узнаём ip его локальный ip(Будет примерно 192.168.1.111):**
@@ -1112,15 +1037,27 @@ ip -br a
 ```bash
 ssh vlad@<ip машины-клиента, который узнали выше>
 ```
+## Переменные:
+>[!Info]
+>Они нам тут ещё пригодятся
+
+**Экспортируем UUID дисков в переменные:**
+```bash
+export NVME0N1P1=$(lsblk -dno UUID /dev/nvme0n1p1) \
+NVME0N1P2=$(lsblk -dno UUID /dev/nvme0n1p2) \
+NVME0N1P3=$(lsblk -dno UUID /dev/nvme0n1p3) \
+ROOT=/dev/mapper/root \
+SWAP=/dev/mapper/swap
+```
 ## Настройка LUKS ЧЕРЕЗ TPMtrusted compute
 >[!Info]
->Помимо systemd-cryptenroll есть ещё Clevis, но он первый в итоге себя показал намного быстрее при загрузке
+>Помимо systemd-cryptenroll есть ещё Clevis, но он в итоге себя показал намного быстрее при загрузке
 ### Systemd-cryptenroll:
 **Устанавливаем необходимые пакеты:**
 ```bash
-paru -S --needed tpm2-tss
+paru -S --needed tpm2-tss tpm2-tools
 ```
-**Проверяем распознаёт ли linux tpm модуль(Если при загрузке появляется ошибка tpm, то ничего страшного):**
+**Проверяем распознаёт ли linux tpm модуль(Если при загрузке системы появляется ошибка tpm, то ничего страшного):**
 ```bash
 test -c /dev/tpm0 && echo OK || echo FAIL
 ```
@@ -1129,29 +1066,21 @@ test -c /dev/tpm0 && echo OK || echo FAIL
 
 **Создаём копию заголовка (Её лучше сразу на какую-то флешку перекинуть):**
 ```bash
-sudo cryptsetup luksHeaderBackup /dev/nvme0n1p2 --header-backup-file /mnt/sdb/header-nvme0n1p2.img
+sudo cryptsetup luksHeaderBackup /dev/nvme0n1p3 --header-backup-file /mnt/sdb/header-nvme0n1p3.img
 ```
 %%
 !!! НАДО ПОСМОТРЕТЬ, КАК ВОССТАНАВЛИВАТЬ ЭТИ ЗАГОЛОВКИ, НА БУДУЩЕЕ
 %%
-**Привязываем luks к clevis и внедряем в tpm ключ:**
+**Привязываем luks к systemd-cryptenroll и внедряем в tpm ключ:**
 ```bash
 sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1p2
 ```
+```bash
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 /dev/nvme0n1p3
+```
 **Проверяем всё ли записалось:**
 ```bash
-sudo cryptsetup luksDump /dev/nvme0n1p2
-```
-**Добавляем /etc/crypttab.initramfs: **
-```bash
-echo "system /dev/nvme0n1p2 none timeout=180,tpm2-device=auto" > /etc/crypttab.initramfs
-```
-**Меняем в mkinitcpio.conf некоторые модули на модули systemd:**
-```bash
-sudo sed -i 's/udev/systemd/' /etc/mkinitcpio.conf && \
-sudo sed -i 's/keymap consolefont/sd-vconsole/' /etc/mkinitcpio.conf && \
-sudo sed -i 's/encrypt/sd-encrypt/' /etc/mkinitcpio.conf && \
-sudo sed -i 's/resume//' /etc/mkinitcpio.conf
+sudo cryptsetup luksDump /dev/nvme0n1p3
 ```
 **Обновляем ядра и подписываем их:**
 ```bash
@@ -1164,27 +1093,41 @@ sudo mkinitcpio -P ; sudo sbctl sign-all
 Все подробности можно посмотреть на том же nvidia-tweaks
 
 ```bash
-mkdir ~/.config/environment.d
+mkdir -p ~/.config/environment.d ;\
 cat << _EOF_ >> ~/.config/environment.d/envvars.conf
 # Wayland environment
-SDL_VIDEODRIVER=wayland # Can break some native games
+SDL_VIDEODRIVER="wayland,x11" # Can break some native games
 XDG_SESSION_TYPE=wayland
-QT_QPA_PLATFORM=wayland
-MOZ_ENABLE_WAYLAND=1
-GBM_BACKEND=nvidia-drm
-WLR_NO_HARDWARE_CURSORS=1 
-KITTY_ENABLE_WAYLAND=1
-#LIBVA_DRIVER_NAME,nvidia
-__GLX_VENDOR_LIBRARY_NAME=nvidia
+QT_QPA_PLATFORM="wayland;xcb"
+MOZ_DBUS_REMOTE=1 # For shared clipboard with Xwayland apps
+# MOZ_ENABLE_WAYLAND=1
+#GBM_BACKEND=nvidia-drm
+#__GLX_VENDOR_LIBRARY_NAME=nvidia
+#WLR_NO_HARDWARE_CURSORS=1 
+_JAVA_AWT_WM_NONREPARENTING=1
 _EOF_
 ```
 > [!INFO]
 > Логичней использовать окружения не сессий или пользователей, а сессии графических сред. Поэтому устанавливаем не в переменные оболочки или environment, а в переменные окружения wayland
 
+**Electron и wayland:**
+
+```bash
+cat << _EOF_ > ~/.config/electron25-flags.conf
+--enable-features=WaylandWindowDecorations
+--ozone-platform-hint=auto
+_EOF_
+```
+
+
+>[!Warning]
+>Не каждое окружение самостоятельно использует это расположение
+>Для тайловых оконных менеджеров логичней использовать переменные внутри конфигов эти файлов
+
 ## Брандмауер:
 **Установка:**
 ```bash
-paru -S ufw
+paru -S --needed ufw
 ```
 **Стандартные настройки:**
 ```bash
@@ -1199,172 +1142,33 @@ sudo ufw enable && \
 sudo systemctl enable --now ufw
 ```
 
-## Настройка графического окружения:
->[!Info]
->Выбираем именно то графическое окружение, что установили
-### KDE настройка:
-**Настройка ufw для kdeconnect:**
-```bash
-sudo ufw allow 1714:1764/udp && \
-sudo ufw allow 1714:1764/tcp
-```
-**Создаём конфиг файл sddm:**
-```bash
-sudo bash -c 'cat << _EOF_ > /etc/sddm.conf.d/kde_settings.conf
-[Autologin]
-Relogin=false
-Session=
-User=
-
-[General]
-HaltCommand=/usr/bin/systemctl poweroff
-RebootCommand=/usr/bin/systemctl reboot
-
-
-[Theme]
-Current=breeze
-
-[Users]
-MaximumUid=60513
-MinimumUid=1000
-_EOF_'
-```
-
-**Включить NUMLOCK в /etc/sddm.conf.d/kde_settings.conf:**
-```bash
-sudo sed -i "/\[General\]/{ 
-n
-n
-a\\
-Numlock=on \\n
-}" /etc/sddm.conf.d/kde_settings.conf
-```
-
-**Установить русскую раскладку:**
-```bash
-cat << _EOF_ >> ~/.config/kxkbrc
-
-[Layout]
-DisplayNames=,
-LayoutList=us,ru
-Use=true
-VariantList=,typo
-_EOF_
-```
-
-**Добавляем сочетание клавиш смены языка как в gnome:**
-Увы, пока только через Gui настройки
-
-**Включить Numlock в самой kde:**
-```bash
-sed -i "/\[\$Version\]/{ 
-n
-n
-a\\
-\[Keyboard\]\\
-NumLock=0 \n
-}" $HOME/.config/kcminputrc
-```
-
-**Добавление аватара:**
-```bash
-sudo curl -o /var/lib/AccountsService/icons/vlad https://besplatnye-programmy.com/uploads/posts/2021-04/1617720980_arch-linux.png
-```
-
-**Установка packagekit и нужных себе программ:**
-```bash
-paru -S packagekit-qt5 ktorrent
-```
 ## Дополнительная безопасность:
-### AppArmor
+### ClamAV
+**Установка clamav и clamtk:**
+```bash
+paru -S clamav clamtk
+```
+
+**Закомментируем заблокированное зеркало и добавляем новое:**
+```bash
+sudo bash -c "sed '/DatabaseMirror database.clamav.net/s/^/#/' -i /etc/clamav/freshclam.conf"  &&\
+sudo bash -c "sed '/DatabaseMirror /a DatabaseMirror https://pivotal-clamav-mirror.s3.amazonaws.com' -i /etc/clamav/freshclam.conf"
+```
+
+**Включаем демон clamav:**
+```bash
+sudo systemctl enable --now clamav-daemon.service
+```
+
 >[!Info]
-Прежде всего нужно убедиться, что ядро поддерживает apparmor
+>Информация взята отсюда:
+>https://interface31.ru/tech_it/2022/06/nastraivaem-antivirusnuyu-zashhitu-v-real-nom-vremeni-na-osnove.html
 
-**Т.к. установщик apparmor-git ругается на отсутствие флагов в ядре, то сначала прописываем их:**
-```bash
-sudo sed -i -e 's/$/ lsm=landlock,lockdown,yama,integrity,apparmor,bpf audit=1/' /etc/kernel/cmdline
-```
-**Обновляем и подписываем ядро:**
-```bash
-sudo mkinitcpio -P ; sudo sbctl sign-all
-```
-**Перезагружаемся для того, чтобы применились новые параметры для ядра:**
-```bash
-sudo reboot
-```
-**Устанавливаем сам apparmor (audit тоже качает ):**
-```bash
-paru -S apparmor-git
-```
-**Запускаем юнит apparmor:**
-```bash
-systemctl enable --now apparmor
-```
-
-#### Для работы уведомлений от Apparmor нужно:
-**Создаём группу аудита:**
-```bash
-sudo groupadd -r audit
-```
-**Создаём добавляем юзера в группу аудита:**
-```bash
-sudo gpasswd -a vlad audit
-```
-**Добавляем группу аудита в конфига аудита:**
-```bash
-sudo sed -i '3 i log_group = audit' /etc/audit/auditd.conf
-```
-**Создаём папку автостарт, если нет:**
-```bash
-mkdir ~/.config/autostart
-```
-**Добавляем .desktop файл для уведомления:**
-```bash
-cat << _EOF_ >> ~/.config/autostart/apparmor-notify.desktop
-[Desktop Entry]
-Type=Application
-Name=AppArmor Notify
-Comment=Receive on screen notifications of AppArmor denials
-TryExec=aa-notify
-Exec=aa-notify -p -s 1 -w 60 -f /var/log/audit/audit.log
-StartupNotify=false
-NoDisplay=true
-_EOF_
-```
-**Запускаем аудита:**
-```bash
-systemctl enable --now auditd
-```
-**Создаём файл syslog, если его нет:**
-```
-sudo touch /var/log/syslog
-```
-**Перезагружаемся:**
-```bash
-sudo reboot
-```
-**Проверяем, работает ли aa-notify:**
+### Проверка Apparmor:
+**Проверяем, работает ли aa-notify (должно быть хоть одно выполнение команды):**
 ```bash
 pgrep -ax aa-notify
 ```
-#### Настройка для кеширования профилей:
-**Смотрим время загрузки профилей:**
-```bash
-systemd-analyze blame | grep apparmor
-```
-**Сниманием комментарий с write-cahe:**
-```bash
-sudo sed '/write-cache/s/^#//' -i /etc/apparmor/parser.conf
-```
-**Перезагружаемся:**
-```bash
-sudo reboot
-```
-**Смотрим время загрузки профилей, теперь должно быть меньше:**
-```bash
-systemd-analyze blame | grep apparmor
-```
-
 ### Timeshift
 **Установка**:
 ```bash
@@ -1374,62 +1178,36 @@ paru -S timeshift
 >1. Выбрать Rcync, т.к. у нас не BTRFS (Но если будет btrfs, то естественно его, если хотим использовать снапшоты)
 >2. Выбрать диск где будет бэкап
 >3. Выбрать периодичность
-
-
 ### UsbGuard
 **Установка:**
 ```bash
-paru -S usbguard-git
+paru -S usbguard
 ```
-
 **Разрешаем все подключенные устройства:**
 ```bash
 sudo bash -c "usbguard generate-policy > /etc/usbguard/rules.conf"
 ```
+**Создаём группу usbguard:**
+```bash
+sudo groupadd -r usbguard
+```
+**Создаём добавляем юзера в группу usbguard:**
+```bash
+sudo gpasswd -a vlad usbguard
+```
+Включаем работу IPC группы usbguard:
+```bash
+sudo bash -c "sed '/IPCAllowedGroups=/s/\$/usbguard/' -i /etc/usbguard/usbguard-daemon.conf"
+```
+ >[!Note]
+>В вики arch описана работа с wheel группой, но для единобразия, я сделал отдельную группу по подобию отдельной группы audit.
 
-**Включаем юнита:**
+**Включаем dbus версию юнита (а иначе всякие gui приложения работать не будут):**
 ```bash
-sudo systemctl enable --now usbguard-dbus
+sudo systemctl enable --now usbguard-dbus.service
 ```
-
-**Создаём polkit для группы wheel в гноме:**
-```bash
-sudo zsh -c 'cat << _EOF_ >> /etc/polkit-1/rules.d/70-allow-usbguard.rules
-// Allow users in wheel group to communicate with USBGuard
-polkit.addRule(function(action, subject) {
-    if ((action.id == "org.usbguard.Policy1.listRules" ||
-         action.id == "org.usbguard.Policy1.appendRule" ||
-         action.id == "org.usbguard.Policy1.removeRule" ||
-         action.id == "org.usbguard.Devices1.applyDevicePolicy" ||
-         action.id == "org.usbguard.Devices1.listDevices" ||
-         action.id == "org.usbguard1.getParameter" ||
-         action.id == "org.usbguard1.setParameter") &&
-        subject.active == true && subject.local == true &&
-        subject.isInGroup("wheel")) {
-            return polkit.Result.YES;
-    }
-});
-_EOF_'
-```
-
-**Включаем уведомления в гноме:**
-```bash
-gsettings set org.gnome.desktop.privacy usb-protection true
-```
->[!Info]
->За дополнительной информацией: https://wiki.archlinux.org/title/USBGuard#Usage
-
-### NTP
-**Установка:**
-```bash
-paru -S ntp
-```
-**Включение юнита ntp:**
-```bash
-sudo systemctl enable --now ntpd
-```
->[!Info]
->За дополнительной информацией: https://wiki.archlinux.org/title/Network_Time_Protocol_daemon_(%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9)
+>[!Note]
+>Если нужен чисто CLI клиент, то достаточно usbguard.service
 
 ### Антивирус maldet
 **Установка:**
@@ -1438,11 +1216,11 @@ paru -S maldet
 ```
 **Включение юнита maldet-update-signatures.timer:**
 ```bash
-systemctl enable --now maldet-update-signatures.timer
+sudo systemctl enable --now maldet-update-signatures.timer
 ```
 **Обновление maldet-update-signatures.timer:**
 ```bash
-systemctl start maldet-update-signatures.service
+sudo systemctl start maldet-update-signatures.service
 ```
 ### Разрешения для важных файлов:
 ```bash
@@ -1479,14 +1257,14 @@ pam_pwquality предоставляет защиту от перебора по
 ```bash
 sudo bash -c 'cat << _EOF_ > "/etc/pam.d/passwd"
 #%PAM-1.0
-password required pam_pwquality.so retry=2 minlen=10 difok=6 dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1 [badwords=myservice mydomain] enforce_for_root
+password required pam_pwquality.so retry=2 minlen=8 difok=6 dcredit=-1 ucredit=-1 lcredit=-1 [badwords=myservice mydomain] enforce_for_root
 password required pam_unix.so use_authtok sha512 shadow
 _EOF_'
 ```
 >[!Info]
 >При следующем изменении пароля, нужно будет создать пароль со следующими условиями:
 >- запрашивать пароль 2 дополнительных раза в случае ошибки (параметр retry);
->- длина пароля не менее 10 символов (параметр minlen);
+>- длина пароля не менее 8 символов (параметр minlen);
 >- новый пароль должен отличаться от старого не менее чем шестью символами (параметр difok);
 >- не менее 1 цифры (параметр dcredit);
 >- не менее 1 буквы в верхнем регистре (параметр ucredit);
@@ -1496,6 +1274,14 @@ _EOF_'
 >- работает в том числе и для пользователя root.
 >Подробнее тут: https://wiki.archlinux.org/title/Security_(%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9)#%D0%A2%D1%80%D0%B5%D0%B1%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F_%D0%BA_%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8E_%D1%81_pam_pwquality
 
+## Настройка графического окружения:
+>[!Info]
+>Продолжаем установку DE
+## Настойка подкачки:
+
+```bash
+sudo bash -c "echo 'vm.swappiness=10'>> /etc/sysctl.d/99-sysctl.conf"
+```
 
 ## Далее будут личные настройки программы, которые можно установить уже после:
 
@@ -1510,11 +1296,13 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 ```
 **Установить тему для zsh:**
 ```bash
-paru -S --noconfirm zsh-theme-powerlevel10k-git
+paru -S zsh-theme-powerlevel10k-git
 ```
+
 ```bash
 echo 'source /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 ```
+
 ```
 zsh
 ```
@@ -1522,58 +1310,45 @@ zsh
 ```bash
 chsh -s /bin/zsh
 ```
-### Flatpak
-**Установка:**
-```bash
-paru -S flatpak
-```
-**Устанавливаем мои приложения:**
-```bash
-flatpak install flathub md.obsidian.Obsidian \
-flathub org.telegram.desktop \
-flatpak install flathub org.mozilla.firefox
-```
-**Для Obsidian добавляем переменную для wayland:**
-```bash
-cat << _EOF_ >> ~/.zshrc
-
-# Wayland environment
-flatpak override --user --env=OBSIDIAN_USE_WAYLAND=1 md.obsidian.Obsidian
-_EOF_
-```
+### [[Flatpak]]
 ### Neovim
-**Установка:**
+**Установка необходимых пакетов:**
 ```bash
-paru -S neovim npm ripgrep lazygit
-```
-### Astronvim
-**Создаём папку для AstroNvim:**
-```bash
-mkdir -p ~/.config/nvim/AstroNvim
-```
-**Установка:**
-```bash
-git clone --depth 1 https://github.com/AstroNvim/AstroNvim ~/.config/AstroNvim
-```
-
-**Nvim environment:**
-```bash
- cat << _EOF_ >> ~/.zshrc
-
-## NeoVim environment
-alias nvim-astro="NVIM_APPNAME=AstroNvim nvim"
-_EOF_
+paru -S --needed neovim npm ripgrep lazygit wl-clipboard tree-sitter
 ```
 >[!Info]
->Переменная NVIM_APPNAME даёт возможность пользоваться разные конфигурациями, в зависимости от нужды. Достаточно записать файлы конфигурации в дополнительную папку, которую потом можно передать этой переменной.
+>rigrep - инструмент, который ищет файлы по описанным патернам
+>lazygit - утилита для работы с git
+>wl-clipboard - утилита для передачи в буфер-обмена
+>tree-sitter - утилита для работы с синтаксисом языков
+### Astronvim
+**Установка:**
+```bash
+git clone --depth 1 https://github.com/AstroNvim/AstroNvim ~/.config/nvim
+```
+
+#### Дальнейшая настройка:
+```bash
+nvim
+```
+**Установка LanguageServerProtocols:**
+Смотреть сервера тут: https://microsoft.github.io/language-server-protocol/implementors/servers/
+**Установка LSP серверов:**
+```
+:LspInstall pyright tsserver bashls
+```
+**Установка парсеров для языков:**
+```
+:TSInstall python javascript bash
+```
+**Установка дебаггеров для языков:**
+```
+:DapInstall python javascript bash
+```
+
 ### Yandex-disk
 ```bash
 mkdir -p /mnt/sdb/Yandex.Disk
-```
-**Делаем ссылки на основные папки:**
-```bash
-ln -s /mnt/sdb/Документы /mnt/sdb/Yandex.Disk/Компьютер\ My_computer/ && \
-ln -s /mnt/sdb/Изображения /mnt/sdb/Yandex.Disk/Компьютер\ My_computer/
 ```
 **Установка:**
 ```bash
@@ -1585,7 +1360,7 @@ yandex-disk setup
 ```
 Конфигурации:
 proxy: no
-/mnt/sdb/Yandex.Disk
+/mnt/sdb/YandexDisk
 
 ## Программы:
 ### Bottles
@@ -1598,12 +1373,22 @@ paru -S bottles
 Библиотеки vsredist2019 dotnet48 allfonts
 
 ## Игры:
-### Steam
+### OpenRGB
 **Установка:**
 ```bash
-paru -S steam
+paru -S --needed openrgb i2c-tools
 ```
-
+**Включаем i2c-dev, создаём группу, если её нет и входим туда:**
+```bash
+sudo modprobe i2c-dev || \ 
+sudo groupadd --system i2c || \
+sudo usermod $USER -aG i2c
+```
+**Создаём правило для запуска:**
+```bash
+sudo bash -c 'echo "i2c-dev" >> /etc/modules-load.d/i2c.conf'
+```
+ 
 ### Elder Scrools Online:
 Во время установки будет проблема с местом на диске
 Нужно в аргументы игры в Steam добавить:
