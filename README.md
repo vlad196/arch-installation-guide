@@ -19,7 +19,6 @@ flowchart LR
         f2fs
     end
   end
-  
   subgraph Linux Catalogue Structure
     direction LR
         /
@@ -34,14 +33,22 @@ flowchart LR
     end
     subgraph sda
         direction TB
-        subgraph windows
+        subgraph ntfs
     end
   end
+  subgraph Windows
+    direction LR
+      boot
+      C:/
+  end
+  
 
 fat32 -- 2Gb--> /efi
+fat32 -- 2Gb--> boot
 f2fs -- 935Gb--> /
 swapfs -- 16Gb--> swap
 btrfs -- 2Tb--> /mnt/sdb
+ntfs -- 256Gb--> C:/
 ```
 
 # Система Arch, особенности:
