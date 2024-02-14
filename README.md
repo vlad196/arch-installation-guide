@@ -714,13 +714,13 @@ blacklist i2c_nvidia_gpu
 # If the video card does not have type-c, and support is included in the drivers, then you can mute it
 _EOF_
 ```
-### [[NVIDIA]]
-### [[Nouveau]]
+### [NVIDIA](NVIDIA.md)
+### [Nouveau](Nouveau.md)
 
 ## Загрузчики:
-### [[Systemd-boot]]
-## [[GRUB]]
-## [[Запись UKI в UEFI]]
+### [Systemd-boot](Systemd-boot.md)
+## [GRUB](GRUB.md)
+## [Запись UKI в UEFI](Запись UKI в UEFI.md)
 ## Пересобираем ядра уже в EFI:
 ```bash
 mkinitcpio -P ; sbctl sign-all
@@ -933,8 +933,8 @@ sed '/write-cache/s/^#//' -i /etc/apparmor/parser.conf
 > [!INFO]
 > На этом этапе можно начинать устанавливать графическое окружение желательно выбрать одно из окружений, т.к. при параллельном использовании одно окружение может влиять на другое
 
-[[Gnome]]
-[[KDE]]
+[Gnome](Gnome.md)
+[KDE](KDE.md)
 ## XDG-USER-DIRS
 %%TODO изменить под Udisks2%%
 Множество программ используют спецификацию XDG, и для таких программ, как файловый менеджер можно прямо указать расположение типовых каталогов (изображения,  документы и т.п.) Это неплохая альтернатива мягким ссылкам
@@ -1317,7 +1317,7 @@ zsh
 ```bash
 chsh -s /bin/zsh
 ```
-### [[Flatpak]]
+### [Flatpak](Flatpak.md)
 ### Neovim
 **Установка необходимых пакетов:**
 ```bash
