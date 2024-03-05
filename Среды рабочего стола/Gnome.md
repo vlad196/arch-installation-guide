@@ -39,7 +39,7 @@ ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
 ```
 
 
-# После перезагрузки:
+# Gnome настройка после перезагрузки:
 #### Настройка GNOME:
 **Установка gnome browser connector:**
 ```bash
@@ -51,8 +51,19 @@ sudo ufw allow 1714:1764/udp && \
 sudo ufw allow 1714:1764/tcp
 ```
 
-#### Интеграция в gnome:
-**Создаём polkit для группы wheel в гноме:**
+#### Интеграция Usbguard с gnome:
+>[!Note]
+>Предполагается, что группа usbguard уже существует и пользователь уже там
+
+**Добавляем права на исполнение утилиты usbguard группе usbguard:**
+
+```bash
+cat << _EOF_ > /etc/sudoers.d/usbguard-group
+%usbguard ALL=(ALL) /usr/bin/usbguard *
+_EOF_
+```
+
+**Создаём polkit для группы usbguard в гноме:**
 ```bash
 sudo bash -c 'cat << _EOF_ >> /etc/polkit-1/rules.d/70-allow-usbguard.rules
 // Allow users in wheel group to communicate with USBGuard
@@ -65,7 +76,7 @@ polkit.addRule(function(action, subject) {
          action.id == "org.usbguard1.getParameter" ||
          action.id == "org.usbguard1.setParameter") &&
         subject.active == true && subject.local == true &&
-        subject.isInGroup("wheel")) {
+        subject.isInGroup("usbguard")) {
             return polkit.Result.YES;
     }
 });

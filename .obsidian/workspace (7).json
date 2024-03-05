@@ -1,0 +1,209 @@
+{
+  "main": {
+    "id": "c67b4eeaa41fd8da",
+    "type": "split",
+    "children": [
+      {
+        "id": "0ee1a532f53d152b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c82a2d4a400ecccf",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Моя установка Achlinux.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "ab76a3801b50c22c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Nouveau.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "dcdbb7dde11a8ccd",
+    "type": "split",
+    "children": [
+      {
+        "id": "9c7d87b33399a3da",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cd8bc5dcc5183a05",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "90a345520da50334",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "01efaae0f351a437",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "a6366d553741227d",
+    "type": "split",
+    "children": [
+      {
+        "id": "c639c27be395f789",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b3e6147ca90cf98c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Archlinux/Моя установка Achlinux.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "eed10b0fdd0a56fd",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Archlinux/Моя установка Achlinux.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "18047e93c60180a5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": false
+              }
+            }
+          },
+          {
+            "id": "6bae20d0fb0919a6",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Archlinux/Моя установка Achlinux.md"
+              }
+            }
+          },
+          {
+            "id": "1477426a36e4c43d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency"
+              }
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "random-note:Open random note": false
+    }
+  },
+  "active": "c82a2d4a400ecccf",
+  "lastOpenFiles": [
+    "Archlinux/Заметки/Заметки для Archlinux.md",
+    "Archlinux/Заметки/Зависимости в пакетах.md",
+    "Archlinux/Заметки/Ещё не разобрал Archlinux.md",
+    "Archlinux/Заметки/Дополнительные пункты для Arch.md",
+    "Archlinux/Моя установка Achlinux.md",
+    "Archlinux/Аппаратное ускорение.md",
+    "Archlinux/Gnome.md",
+    "Archlinux/Установка plasma 6 из исходников.md",
+    "Архитектура DE.md",
+    "ак.md",
+    "Archlinux/Nouveau.md",
+    "Archlinux/KDE.md",
+    "Archlinux/Hyprland.md",
+    "README.md",
+    "Neovim shortcuts.md",
+    "GTK4 CSS.md",
+    "Работа с GitHub.md",
+    "Почему flatpak это не панацея.md",
+    "Почему ноутбук на intel лучше, чем на amd.md",
+    "Archlinux/GRUB.md",
+    "Archlinux/Этапы установки",
+    "Archlinux/Firefox gnome.md",
+    "Archlinux/Заметки/Envinronment.md",
+    "Archlinux/Заметки/Arch install via SSH.md",
+    "Archlinux/Заметки/Предупреждения в Mkinitcpio.md",
+    "Archlinux/Заметки/Font and systemd.md",
+    "Archlinux/Заметки/Nvidia i2c.md",
+    "Project Selector webapp.canvas",
+    "Без названия.canvas",
+    "Совершенное руководство по разработке ПО",
+    "Archlinux/Заметки",
+    "Templates",
+    "Archlinux"
+  ]
+}

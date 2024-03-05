@@ -1,3 +1,4 @@
+
 **Установка Systemd-boot:**
 ```bash
  bootctl install
@@ -8,10 +9,13 @@ sbctl sign -s /usr/lib/systemd/boot/efi/systemd-bootx64.efi &&\
 sbctl sign -s /efi/EFI/systemd/systemd-bootx64.efi 
 ```
 #### Конфигурируем systemd-boot:
+>[!Note]
+>Не забыть про переменную $MAIN_KERNEL
+
 **В папке loader создать и настроить:**
 ```bash
 cat << _EOF_ > /efi/loader/loader.conf
-default arch-linux-lqx.efi
+default arch-$MAIN_KERNEL.efi
 timeout 10
 console-mode max
 editor no

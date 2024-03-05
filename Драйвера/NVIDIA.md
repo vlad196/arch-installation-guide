@@ -147,18 +147,8 @@ _EOF_
 echo "nvidia-uvm" > /etc/modules-load.d/nvidia-uvm.conf
 ```
 
-**Включаем suspend от nvidia:**
+**Включаем интерфейсы питания от nvidia:**
 ```bash
-systemctl enable nvidia-suspend
+systemctl enable nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
 ```
-**Включаем resume от nvidia:**
-```bash
-systemctl enable nvidia-resume
-```
-**Включаем hibernate от nvidia:**
-```bash
-systemctl enable nvidia-hibernate
-```
-> [!INFO]
->Можно и не включать, если не используете гибернацию. 
->Лично я включил только ради того, чтобы кнопка в пуске работала штатно, если когда-нибудь её нажму
+

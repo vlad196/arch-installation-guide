@@ -5,8 +5,8 @@ paru -S --needed flatpak
 ```
 **Добавляем репозитории flathub и kdeapps:**
 ```bash
-sudo flatpak remote-add flathub https://flathub.org/repo/flathub.flatpakrepo && \
-sudo flatpak remote-add kdeapps https://distribute.kde.org/kdeapps.flatpakrepo
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
+flatpak remote-add --if-not-exists  kdeapps https://distribute.kde.org/kdeapps.flatpakrepo
 ```
 **Устанавливаем темы для gtk и kde:**
 Удостоверяемся, что установлены порталы kde и gtk:

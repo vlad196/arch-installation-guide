@@ -1,0 +1,226 @@
+{
+  "main": {
+    "id": "c67b4eeaa41fd8da",
+    "type": "split",
+    "children": [
+      {
+        "id": "0ee1a532f53d152b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3f35a791222d676a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Этапы установки/Nouveau.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "6ff94535233f425c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Этапы установки/KDE.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "0b9f678b10c29a9f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Этапы установки/Моя установка Achlinux.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "dcdbb7dde11a8ccd",
+    "type": "split",
+    "children": [
+      {
+        "id": "9c7d87b33399a3da",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cd8bc5dcc5183a05",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "90a345520da50334",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "01efaae0f351a437",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200,
+    "collapsed": true
+  },
+  "right": {
+    "id": "a6366d553741227d",
+    "type": "split",
+    "children": [
+      {
+        "id": "c639c27be395f789",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b3e6147ca90cf98c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Archlinux/Этапы установки/Nouveau.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "eed10b0fdd0a56fd",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Archlinux/Этапы установки/Nouveau.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "18047e93c60180a5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": false
+              }
+            }
+          },
+          {
+            "id": "6bae20d0fb0919a6",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Archlinux/Этапы установки/Nouveau.md"
+              }
+            }
+          },
+          {
+            "id": "1477426a36e4c43d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              }
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "random-note:Open random note": false
+    }
+  },
+  "active": "3f35a791222d676a",
+  "lastOpenFiles": [
+    "Archlinux/Этапы установки/KDE.md",
+    "Archlinux/Этапы установки/Gnome.md",
+    "Archlinux/Этапы установки/Моя установка Achlinux.md",
+    "Archlinux/Этапы установки/NVIDIA.md",
+    "Archlinux/Этапы установки/Nouveau.md",
+    "Systemd-boot.md",
+    "Archlinux/Дополнительные заметки/Ещё не разобрал Archlinux.md",
+    "Archlinux/Дополнительные заметки/Дополнительная оптимизация.md",
+    "Archlinux/Дополнительные заметки/Дополнительные пункты для Arch.md",
+    "Archlinux/Дополнительные заметки/Зависимости в пакетах.md",
+    "Archlinux/Дополнительные заметки/Заметки для Archlinux.md",
+    "Archlinux/Дополнительные заметки/Предупреждения в Mkinitcpio.md",
+    "Archlinux/Дополнительные заметки/Arch install via SSH.md",
+    "Archlinux/Дополнительные заметки/Envinronment.md",
+    "Archlinux/Дополнительные заметки/Error logs with Gnome.md",
+    "Archlinux/Дополнительные заметки/LVM на LUKS.md",
+    "Archlinux/Этапы установки/GRUB.md",
+    "Запись UKI в UEFI.md",
+    "Archlinux/Этапы установки/Аппаратное ускорение.md",
+    "Знания/Почему flatpak это не панацея.md",
+    "Знания",
+    "Знания/Neovim shortcuts.md",
+    "Знания/Permision.md",
+    "Знания/Работа с GitHub.md",
+    "Знания/Архитектура DE.md",
+    "Знания/Почему ноутбук на intel лучше, чем на amd.md",
+    "Archlinux/Дополнительные заметки/Secure boot.md",
+    "Archlinux/Дополнительные заметки/Hyprland",
+    "Archlinux/Этапы установки",
+    "Project Selector webapp.canvas",
+    "Без названия.canvas",
+    "Совершенное руководство по разработке ПО",
+    "Archlinux/Дополнительные заметки",
+    "Templates",
+    "Archlinux"
+  ]
+}

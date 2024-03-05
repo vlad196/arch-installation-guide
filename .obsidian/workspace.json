@@ -1,0 +1,193 @@
+{
+  "main": {
+    "id": "c67b4eeaa41fd8da",
+    "type": "split",
+    "children": [
+      {
+        "id": "1f59a9cd6f06fddf",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f845140e9b6c2fb7",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "dcdbb7dde11a8ccd",
+    "type": "split",
+    "children": [
+      {
+        "id": "9c7d87b33399a3da",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cd8bc5dcc5183a05",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "90a345520da50334",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "01efaae0f351a437",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "a6366d553741227d",
+    "type": "split",
+    "children": [
+      {
+        "id": "c639c27be395f789",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b3e6147ca90cf98c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "eed10b0fdd0a56fd",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "18047e93c60180a5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": false
+              }
+            }
+          },
+          {
+            "id": "6bae20d0fb0919a6",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {}
+            }
+          },
+          {
+            "id": "1477426a36e4c43d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              }
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "random-note:Open random note": false
+    }
+  },
+  "active": "f845140e9b6c2fb7",
+  "lastOpenFiles": [
+    "README.md",
+    "Моя установка Achlinux.md",
+    "Archlinux/Установка Arch/Моя установка Achlinux.md",
+    "Archlinux/Установка Arch/Программы и игры/Elder Scrools Online.md",
+    "Archlinux/Установка Arch/Программы и игры/Flatpak.md",
+    "Archlinux/Установка Arch/Драйвера/NVIDIA.md",
+    "Archlinux/Установка Arch/Драйвера/Nouveau.md",
+    "Archlinux/Установка Arch/Среды рабочего стола/KDE.md",
+    "Archlinux/Установка Arch/Программы и игры/Yandex-disk.md",
+    "Archlinux/Установка Arch/Программы и игры/Usbguard.md",
+    "Archlinux/Установка Arch/Программы и игры/ZSH.md",
+    "Archlinux/Установка Arch/Загрузчики/Systemd-boot 1.md",
+    "Archlinux/Установка Arch/Загрузчики/Systemd-boot.md",
+    "Archlinux/Этапы установки/Моя установка Achlinux.md",
+    "Archlinux/Этапы установки/Flatpak.md",
+    "Archlinux/Этапы установки/NVIDIA.md",
+    "Archlinux/Этапы установки/Аппаратное ускорение.md",
+    "Archlinux/Дополнительные заметки/Зависимости в пакетах.md",
+    "Archlinux/Дополнительные заметки/Предупреждения в Mkinitcpio.md",
+    "Archlinux/Дополнительные заметки/Arch install via SSH.md",
+    "Archlinux/Этапы установки/Apparmor FAQ.md",
+    "Archlinux/Этапы установки/Nouveau.md",
+    "Archlinux/Этапы установки/KDE.md",
+    "Archlinux/Этапы установки/Gnome.md",
+    "Archlinux/Этапы установки/НЕРЕШЁННЫЕ ПРОБЛЕМЫ.md",
+    "Знания/Почему flatpak это не панацея.md",
+    "Знания",
+    "Archlinux/Дополнительные заметки/Hyprland",
+    "Archlinux/Этапы установки",
+    "Project Selector webapp.canvas",
+    "Без названия.canvas",
+    "Совершенное руководство по разработке ПО",
+    "Archlinux/Дополнительные заметки",
+    "Templates",
+    "Archlinux"
+  ]
+}

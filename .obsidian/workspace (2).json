@@ -1,0 +1,178 @@
+{
+  "main": {
+    "id": "c67b4eeaa41fd8da",
+    "type": "split",
+    "children": [
+      {
+        "id": "0ee1a532f53d152b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "fc23e88252d8925e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Заметки для Archlinux.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "dcdbb7dde11a8ccd",
+    "type": "split",
+    "children": [
+      {
+        "id": "9c7d87b33399a3da",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cd8bc5dcc5183a05",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "90a345520da50334",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "tag:#Логичней",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "01efaae0f351a437",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "a6366d553741227d",
+    "type": "split",
+    "children": [
+      {
+        "id": "c639c27be395f789",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b3e6147ca90cf98c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Archlinux/Заметки для Archlinux.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "eed10b0fdd0a56fd",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Archlinux/Заметки для Archlinux.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "18047e93c60180a5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": false
+              }
+            }
+          },
+          {
+            "id": "6bae20d0fb0919a6",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Archlinux/Заметки для Archlinux.md"
+              }
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Меню быстрого перехода": false,
+      "graph:Граф": false,
+      "canvas:Создать новый холст": false,
+      "daily-notes:Сегодняшняя заметка": false,
+      "templates:Вставить шаблон": false,
+      "command-palette:Открыть палитру команд": false,
+      "random-note:Открыть случайную заметку": false
+    }
+  },
+  "active": "fc23e88252d8925e",
+  "lastOpenFiles": [
+    "Archlinux/Ещё не разобрал Archlinux.md",
+    "Archlinux/Дополнительные пункты для Arch.md",
+    "Archlinux/Заметки для Archlinux.md",
+    "Archlinux/Моя установка Achlinux.md",
+    "Archlinux/Моя установка Achlinux (копия).md",
+    "Archlinux/Envinronment.md",
+    "Совершенное руководство по разработке ПО/Конструирование ПО.md",
+    "Совершенное руководство по разработке ПО/Разработка ПО.md",
+    "Archlinux/Заметки/Nvidia i2c.md",
+    "Archlinux/Заметки/Arch install via SSH.md",
+    "Archlinux/Заметки/Предупреждения в Mkinitcpio.md",
+    "Archlinux/Заметки/Зависимости в пакетах.md",
+    "Templates/Статья.md",
+    "README.md",
+    "Совершенное руководство по разработке ПО",
+    "Archlinux/Secure boot.md",
+    "Archlinux/Permision.md",
+    "Archlinux/Заметки",
+    "Templates",
+    "Archlinux/Nvidia error.md",
+    "Untitled.canvas",
+    "2023-06-15.md",
+    "Archlinux",
+    "Arch install project.md"
+  ]
+}

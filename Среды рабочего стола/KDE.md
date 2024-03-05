@@ -1,6 +1,6 @@
 ### Добавление своего стека репозиториев:
 
-beta-kde (Репозиторий с beta версией KDE)
+beta-kde (Репозиторий с beta версией KDE. Когда нет теста, не имеет смысла ставить)
 ```bash
 sed '/# Default repositories/i\
 \# Beta-kde\
@@ -11,11 +11,11 @@ sed '/# Default repositories/i\
 
 **Установка:**
 ```bash
-sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta kde-pim-meta kde-pim-meta
+sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta ufw qt6-virtualkeyboard power-profiles-daemon phonon-qt6-vlc kmail
 ```
 
 ```bash
-sudo -u vlad paru -Sy --asdeps ufw qt6-virtualkeyboard power-profiles-daemon phonon-qt6-vlc sshfs cdrdao dvd+rw-tools
+sudo -u vlad paru -Sy --asdeps cracklib galera judy perl-dbd-mariadb python-mysqlclient
 ```
 >[!Note]
 >Если ставиться plasma 5, необходим ещё один пакет для wayland plasma-wayland-session.
@@ -89,12 +89,7 @@ ffmpegthumbs raw-thumbnailer taglib kde-thumbnailer-apk
 ```
 
 ### Автозагрузка:
-#### Usbguard апплет:
-**Устанавливаем usbguard апплет:**
-```bash
-paru -S  usbguard-applet-qt
-```
-**Делаем автозагрузку:**
+**Делаем автозагрузку usbguard:**
 ```bash
 sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.config/autostart/usbguard-applet.desktop
 [Desktop Entry]
@@ -107,14 +102,8 @@ TryExec=usbguard-applet-qt
 Exec=usbguard-applet-qt
 _EOF_'
 ```
-TODO
-#### Yandex-disk апплет:
-**Скачиваем напрямую с github (Пакета в репозитории нет) и делаем его исполняемым:**
-```bash
-sudo wget https://github.com/slytomcat/yd-go/releases/download/master-f987e862/yd-go /usr/bin/ && \
-sudo chmod +x /usr/bin/yd-go
-```
-**Делаем автозагрузку:**
+
+**Делаем автозагрузку yd-go:**
 ```bash
 sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.config/autostart/yd-go-applet.desktop
 [Desktop Entry]
@@ -126,9 +115,7 @@ TryExec=yd-go
 Exec=yd-go
 _EOF_'
 ```
-TODO
-
-### KDE настройка после перезагрузки:
+### KDE настройка после перезагрузки
 **Настройка ufw для kdeconnect:**
 ```bash
 sudo ufw allow 1714:1764/udp && \

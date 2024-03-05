@@ -1,0 +1,226 @@
+{
+  "main": {
+    "id": "c67b4eeaa41fd8da",
+    "type": "split",
+    "children": [
+      {
+        "id": "fcc4399ed3d8ee66",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4f469dd3604f3949",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Установка Arch/Моя установка Achlinux.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "f99512d050809a51",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Установка Arch/Программы и игры/Yandex-disk.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "060df6eecf2625c1",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Archlinux/Установка Arch/Среды рабочего стола/KDE.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ],
+        "currentTab": 1
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "dcdbb7dde11a8ccd",
+    "type": "split",
+    "children": [
+      {
+        "id": "9c7d87b33399a3da",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cd8bc5dcc5183a05",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "90a345520da50334",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "01efaae0f351a437",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 323.5
+  },
+  "right": {
+    "id": "a6366d553741227d",
+    "type": "split",
+    "children": [
+      {
+        "id": "c639c27be395f789",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b3e6147ca90cf98c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Archlinux/Установка Arch/Программы и игры/Yandex-disk.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "eed10b0fdd0a56fd",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Archlinux/Установка Arch/Программы и игры/Yandex-disk.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "18047e93c60180a5",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": false
+              }
+            }
+          },
+          {
+            "id": "6bae20d0fb0919a6",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Archlinux/Установка Arch/Программы и игры/Yandex-disk.md"
+              }
+            }
+          },
+          {
+            "id": "1477426a36e4c43d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              }
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Меню быстрого перехода": false,
+      "graph:Граф": false,
+      "canvas:Создать новый холст": false,
+      "daily-notes:Сегодняшняя заметка": false,
+      "templates:Вставить шаблон": false,
+      "command-palette:Открыть палитру команд": false,
+      "random-note:Открыть случайную заметку": false
+    }
+  },
+  "active": "f99512d050809a51",
+  "lastOpenFiles": [
+    "Archlinux/Установка Arch/Программы и игры/Usbguard.md",
+    "Archlinux/Установка Arch/Моя установка Achlinux.md",
+    "Archlinux/Установка Arch/Среды рабочего стола/KDE.md",
+    "Archlinux/Установка Arch/Программы и игры/ZSH.md",
+    "Archlinux/Установка Arch/Драйвера/Nouveau.md",
+    "Archlinux/Установка Arch/Загрузчики/Systemd-boot 1.md",
+    "Archlinux/Установка Arch/Загрузчики/Systemd-boot.md",
+    "README.md",
+    "Archlinux/Этапы установки/Моя установка Achlinux.md",
+    "Archlinux/Этапы установки/Flatpak.md",
+    "Archlinux/Этапы установки/NVIDIA.md",
+    "Archlinux/Этапы установки/Аппаратное ускорение.md",
+    "Archlinux/Дополнительные заметки/Зависимости в пакетах.md",
+    "Archlinux/Дополнительные заметки/Предупреждения в Mkinitcpio.md",
+    "Archlinux/Дополнительные заметки/Arch install via SSH.md",
+    "Archlinux/Этапы установки/Apparmor FAQ.md",
+    "Archlinux/Этапы установки/Nouveau.md",
+    "Archlinux/Этапы установки/KDE.md",
+    "Archlinux/Этапы установки/Gnome.md",
+    "Archlinux/Этапы установки/НЕРЕШЁННЫЕ ПРОБЛЕМЫ.md",
+    "Знания/Почему flatpak это не панацея.md",
+    "Archlinux/Дополнительные заметки/Дополнительные пункты для Arch.md",
+    "Знания/Почему ноутбук на intel лучше, чем на amd.md",
+    "Archlinux/Дополнительные заметки/Ещё не разобрал Archlinux.md",
+    "Archlinux/Дополнительные заметки/Дополнительная оптимизация.md",
+    "Archlinux/Дополнительные заметки/Заметки для Archlinux.md",
+    "Знания",
+    "Archlinux/Дополнительные заметки/Hyprland",
+    "Archlinux/Этапы установки",
+    "Project Selector webapp.canvas",
+    "Без названия.canvas",
+    "Совершенное руководство по разработке ПО",
+    "Archlinux/Дополнительные заметки",
+    "Templates",
+    "Archlinux"
+  ]
+}
