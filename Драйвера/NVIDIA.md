@@ -23,7 +23,7 @@ NeedsTargets
 Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux*) exit 0; esac; done; /usr/bin/mkinitcpio -P; /usr/bin/sbctl sign-all'
 _EOF_
 ```
->[!Info]
+>[!NOTE]
 К сожалению, с AUR скриптами хуки не работают. Заработает если будет обычный пакет nvidia-dkms
 
 **Добавление репозиториев mesa-git (Репозиторий с последними скомилированными бинарниками mesa)**
