@@ -13,6 +13,6 @@ sudo bash -c "sed '/DatabaseMirror /a DatabaseMirror https://pivotal-clamav-mirr
 ```bash
 sudo systemctl enable --now clamav-daemon.service
 ```
->[!Info]
+>[!NOTE]
 >Информация взята отсюда:
 >https://interface31.ru/tech_it/2022/06/nastraivaem-antivirusnuyu-zashhitu-v-real-nom-vremeni-na-osnove.html
