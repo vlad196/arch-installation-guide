@@ -39,9 +39,20 @@ ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
 ```
 
 
-# Gnome настройка после перезагрузки:
-#### Настройка GNOME:
-**Установка gnome browser connector:**
+# Gnome настройка после перезагрузки
+### Включение темы Adwaita для приложений QT в Flatpak.
+
+**Удостоверяемся, что установлены порталы kde:**
+```bash
+paru -S --asdep xdg-desktop-portal-kde
+```
+Для приложений GTK ставим тему breeze:
+```bash
+flatpak install flathub org.kde.KStyle.Adwaita \
+org.kde.PlatformTheme.QGnomePlatform
+```
+
+### Установка gnome browser connector:
 ```bash
 paru -S gnome-browser-connector
 ```
@@ -51,7 +62,7 @@ sudo ufw allow 1714:1764/udp && \
 sudo ufw allow 1714:1764/tcp
 ```
 
-#### Интеграция Usbguard с gnome:
+### Интеграция Usbguard с gnome:
 >[!Note]
 >Предполагается, что группа usbguard уже существует и пользователь уже там
 
@@ -91,21 +102,20 @@ gsettings set org.gnome.desktop.privacy usb-protection true
 >Это не полная защита. Если хочеться полной блокировки всех usb, тогда необходим, например usbguard-notifier. Но мне хватает и защиты при выходе в экран блокировки и сам usbguard-notifier имеет какие-то проблемы в сборке из AUR
 >За дополнительной информацией: https://wiki.archlinux.org/title/USBGuard#Usage
 
-**Указываем таким программам, как телеграмм файловый менеджер gnome:**
+### Указываем таким программам, как телеграмм файловый менеджер gnome:
 ```bash
 cat << _EOF_ >> ~/.config/environment.d/envvars.conf
-QT_QPA_PLATFORMTHEME=gtk3 #TODO перенести это в gnome
+QT_QPA_PLATFORMTHEME=gtk3
 _EOF_
 ```
 
-**Включаем 3д-ускорение в xwayland:**
+### Включаем 3д-ускорение в xwayland:
 ```bash
 gsettings set org.gnome.mutter experimental-features '["kms-modifiers"]'
 ```
 Взято отсюда: https://download.nvidia.com/XFree86/Linux-x86_64/545.29.06/README/xwayland.html
 
-**Чтобы gkr-pam не просился раньше времени и не выдавал ошибку:** 
-
+### Чтобы gkr-pam не просился раньше времени и не выдавал ошибку:
 ```bash
 sudo bash -c 'sed -i "/^auth[[:space:]]*optional/s/\(pam_gnome_keyring.so\)\(.*\)$/\1 only_if=gdm\2/" /etc/pam.d/gdm-password && \
 sed "/^session[[:space:]]*optional/s/auto_start/only_if=gdm/" -i /etc/pam.d/gdm-password'

@@ -115,14 +115,31 @@ TryExec=yd-go
 Exec=yd-go
 _EOF_'
 ```
-### KDE настройка после перезагрузки
-**Настройка ufw для kdeconnect:**
+# KDE настройка после перезагрузки
+### Включение темы breeze для приложений GTK в Flatpak.
+
+**Удостоверяемся, что установлены порталы gtk:**
+```bash
+paru -S --asdep xdg-desktop-portal-gtk
+```
+**Для приложений GTK ставим тему breeze:**
+```bash
+flatpak install flathub org.gtk.Gtk3theme.Breeze
+```
+**Глобально внедряем папку с GTK настройками:**
+```bash
+cat << _EOF_ > "~/.local/share/flatpak/overrides/global"
+[Context]
+filesystems=xdg-config/gtk-3.0:ro;xdg-config/gtk-4.0:ro;
+_EOF_
+```
+### Настройка ufw для kdeconnect:
 ```bash
 sudo ufw allow 1714:1764/udp && \
 sudo ufw allow 1714:1764/tcp
 ```
 
-**Установить русскую раскладку:**
+### Установить русскую раскладку:
 ```bash
 cat << _EOF_ >> ~/.config/kxkbrc
 
@@ -134,10 +151,10 @@ VariantList=,typo
 _EOF_
 ```
 
-**Добавляем сочетание клавиш смены языка как в gnome:**
+### Добавляем сочетание клавиш смены языка как в gnome:
 Увы, пока только через Gui настройки
 
-**Включить Numlock в самой kde:**
+### Включить Numlock в самой kde:
 ```bash
 sed -i "/\[\$Version\]/{ 
 n
@@ -147,17 +164,8 @@ a\\
 NumLock=0 \n
 }" $HOME/.config/kcminputrc
 ```
-Включение gtk-breeze темы для flatpak
-```bash
-cat << _EOF_ >> ~/.local/share/flatpak/overrides/global
-[Environment]
-GTK_THEME=Breeze
-ICON_THEME=Breeze
-XCURSOR_THEME=Breeze
-_EOF_
-```
 
-**Добавление аватара:**
+### Добавление аватара:
 ```bash
 sudo curl -o /var/lib/AccountsService/icons/vlad https://besplatnye-programmy.com/uploads/posts/2021-04/1617720980_arch-linux.png
 ```

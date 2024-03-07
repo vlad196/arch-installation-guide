@@ -3,31 +3,9 @@
 ```bash
 paru -S --needed flatpak
 ```
-**Добавляем репозитории flathub и kdeapps:**
+**Добавляем репозитории flathub:**
 ```bash
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-```
-**Устанавливаем темы для gtk и kde:**
-Удостоверяемся, что установлены порталы kde и gtk:
-```bash
-paru -S --asdep xdg-desktop-portal-gtk xdg-desktop-portal-kde
-```
-Для приложений gtk тему breeze:
-```bash
-flatpak install flathub org.gtk.Gtk3theme.Breeze
-```
-Глобально внедряем папку с gtk темами:
-```bash
-cat << _EOF_ > "~/.local/share/flatpak/overrides/global"
-[Context]
-filesystems=xdg-config/gtk-3.0:ro;xdg-config/gtk-4.0:ro;
-_EOF_
-```
-
-Для приложений QT тему Adwaita:
-```bash
-flatpak install flathub org.kde.KStyle.Adwaita \
-org.kde.PlatformTheme.QGnomePlatform
 ```
 
 **Устанавливаем мои приложения:**
