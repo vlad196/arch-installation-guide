@@ -5,8 +5,7 @@ paru -S --needed flatpak
 ```
 **Добавляем репозитории flathub и kdeapps:**
 ```bash
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo && \
-flatpak remote-add --if-not-exists  kdeapps https://distribute.kde.org/kdeapps.flatpakrepo
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 ```
 **Устанавливаем темы для gtk и kde:**
 Удостоверяемся, что установлены порталы kde и gtk:
@@ -27,7 +26,7 @@ _EOF_
 
 Для приложений QT тему Adwaita:
 ```bash
-flatpak install kdeapps org.kde.KStyle.Adwaita \
+flatpak install flathub org.kde.KStyle.Adwaita \
 org.kde.PlatformTheme.QGnomePlatform
 ```
 
@@ -43,21 +42,16 @@ com.visualstudio.code
 TODO: переделать в файл. Так только на сеанс
 **Для Obsidian добавляем переменную для wayland:**
 ```bash
-flatpak override --user --socket=wayland --env=OBSIDIAN_DISABLE_GPU=1 md.obsidian.Obsidian
+flatpak override --user --socket=wayland;fallback-x11; --env=OBSIDIAN_DISABLE_GPU=1 md.obsidian.Obsidian
 ```
 >[!Note]
 >Если нужны ещё разрешения: [flathub/md.obsidian.Obsidian (github.com)](https://github.com/flathub/md.obsidian.Obsidian)
 
 **Для Discord добавляем переменную для wayland:**
 ```bash
-cat << _EOF_ > "~/.local/share/flatpak/overrides/md.obsidian.Obsidian"
-[Context]
-sockets=wayland;fallback-x11;
-
-[Environment]
-OBSIDIAN_DISABLE_GPU=1
-_EOF_
+flatpak override --user --socket=wayland com.discordapp.Discord
 ```
+
 >[!Note]
 >Если нужны ещё разрешения: [flathub/com.discordapp.Discord (github.com)](https://github.com/flathub/com.discordapp.Discord)
 
