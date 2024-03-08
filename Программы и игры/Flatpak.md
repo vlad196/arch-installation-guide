@@ -14,10 +14,10 @@ sudo flatpak install flathub md.obsidian.Obsidian \
 org.telegram.desktop \
 com.valvesoftware.Steam \
 com.discordapp.Discord \
-com.visualstudio.code
+com.visualstudio.code\
+com.microsoft.Edge
 ```
 
-TODO: переделать в файл. Так только на сеанс
 **Для Obsidian добавляем переменную для wayland:**
 ```bash
 flatpak override --user --socket=wayland --env=OBSIDIAN_DISABLE_GPU=1 md.obsidian.Obsidian
@@ -29,10 +29,16 @@ flatpak override --user --socket=wayland --env=OBSIDIAN_DISABLE_GPU=1 md.obsidia
 ```bash
 flatpak override --user --socket=wayland com.discordapp.Discord
 ```
-
 >[!Note]
 >Если нужны ещё разрешения: [flathub/com.discordapp.Discord (github.com)](https://github.com/flathub/com.discordapp.Discord)
 
+**Для Edge добавляем переменную для wayland:**
+```bash
+cat << _EOF_ > "${HOME}/.var/app/com.microsoft.Edge/config/edge-flags.conf"
+--ozone-platform=wayland
+--enable-features=UseOzonePlatform
+_EOF_
+```
 **Настройка VSCode:** 
 Использование своей оболочки внутри vscode:
 Добавляем в `File -> Preferences -> Settings -> Terminal > Integrated > Profiles`:
