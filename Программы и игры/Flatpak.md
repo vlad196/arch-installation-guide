@@ -3,7 +3,7 @@
 ```bash
 paru -S --needed flatpak
 ```
-**Добавляем репозитории flathub:**
+**Добавляем репозиторий flathub:**
 ```bash
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 ```
