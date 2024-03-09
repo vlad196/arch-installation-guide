@@ -60,6 +60,7 @@ _EOF_
 cp /var/lib/flatpak/app/com.discordapp.Discord/current/active/export/share/applications/com.visualstudio.code.desktop ${HOME}/.local/share/applications/
 ```
 2. Модифицируем его:
+TODO:доработать скрипт
 ```bash
 sed -i 's|com.visualstudio.code|--socket=wayland com.visualstudio.code|g' ${HOME}/.local/share/applications/com.visualstudio.code.desktop && \
 sed -i 's|@@ %F @@| --enable-features=UseOzonePlatform --ozone-platform=wayland @@ %F @@|g' ${HOME}/.local/share/applications/com.visualstudio.code.desktop
