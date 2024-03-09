@@ -84,7 +84,7 @@ _EOF_
 ### Настройка Dolphin:
 **Добавляем thumbnails для файлов:**
 ```bash
-paru -S --needed kdegraphics-thumbnailers kimageformats5 libheif qt5-imageformats resvg kdesdk-thumbnailers  
+paru -Sy --asdeps --needed kdegraphics-thumbnailers kimageformats5 libheif qt5-imageformats resvg kdesdk-thumbnailers  
 ffmpegthumbs raw-thumbnailer taglib kde-thumbnailer-apk
 ```
 
