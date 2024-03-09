@@ -64,6 +64,9 @@ cp /var/lib/flatpak/app/com.discordapp.Discord/current/active/export/share/appli
 sed -i 's|com.visualstudio.code|--socket=wayland com.visualstudio.code|g' ${HOME}/.local/share/applications/com.visualstudio.code.desktop && \
 sed -i 's|@@ %F @@| --enable-features=UseOzonePlatform --ozone-platform=wayland @@ %F @@|g' ${HOME}/.local/share/applications/com.visualstudio.code.desktop
 ```
+>[!Note]
+>Источник: https://github.com/flathub/com.visualstudio.code/issues/471
+
 Использование своей оболочки внутри vscode:
 Добавляем в `File -> Preferences -> Settings -> Terminal > Integrated > Profiles`:
 ```bash
