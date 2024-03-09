@@ -26,11 +26,24 @@ flatpak override --user --socket=wayland --env=OBSIDIAN_DISABLE_GPU=1 md.obsidia
 >Если нужны ещё разрешения: [flathub/md.obsidian.Obsidian (github.com)](https://github.com/flathub/md.obsidian.Obsidian)
 
 **Для Discord добавляем переменную для wayland:**
+1-ый вариант, который указан, но который не работает:
 ```bash
 flatpak override --user --socket=wayland com.discordapp.Discord
 ```
 >[!Note]
 >Если нужны ещё разрешения: [flathub/com.discordapp.Discord (github.com)](https://github.com/flathub/com.discordapp.Discord)
+
+2-ой вариант: 
+
+1.Копируем ярлык и модифицируем его:
+```bash
+cp /var/lib/flatpak/app/com.discordapp.Discord/current/active/export/share/applications/com.discordapp.Discord.desktop ${HOME}/.local/share/applications/
+```
+2. Модифицируем его:
+```bash
+sed -i 's/\(Exec=.*\)/\1 --enable-features=UseOzonePlatform --ozone-platform=wayland/' ${HOME}/.local/share/applications/com.discordapp.Discord.desktop
+```
+
 
 **Для Edge добавляем переменную для wayland:**
 ```bash
@@ -40,6 +53,17 @@ cat << _EOF_ > "${HOME}/.var/app/com.microsoft.Edge/config/edge-flags.conf"
 _EOF_
 ```
 **Настройка VSCode:** 
+Добавляем  wayland:
+
+1.Копируем ярлык и модифицируем его:
+```bash
+cp /var/lib/flatpak/app/com.discordapp.Discord/current/active/export/share/applications/com.visualstudio.code.desktop ${HOME}/.local/share/applications/
+```
+2. Модифицируем его:
+```bash
+sed -i 's|com.visualstudio.code|--socket=wayland com.visualstudio.code|g' ${HOME}/.local/share/applications/com.visualstudio.code.desktop && \
+sed -i 's|@@ %F @@| --enable-features=UseOzonePlatform --ozone-platform=wayland @@ %F @@|g' ${HOME}/.local/share/applications/com.visualstudio.code.desktop
+```
 Использование своей оболочки внутри vscode:
 Добавляем в `File -> Preferences -> Settings -> Terminal > Integrated > Profiles`:
 ```bash
