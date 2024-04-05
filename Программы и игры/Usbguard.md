@@ -29,5 +29,5 @@ sudo systemctl enable --now usbguard-dbus.service
 #### Usbguard qt апплет:
 **Устанавливаем usbguard апплет:**
 ```bash
-paru -S  usbguard-applet-qt
+paru -S  usbguard-qt
 ```

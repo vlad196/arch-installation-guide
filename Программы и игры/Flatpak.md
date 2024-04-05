@@ -14,7 +14,7 @@ sudo flatpak install flathub md.obsidian.Obsidian \
 org.telegram.desktop \
 com.valvesoftware.Steam \
 com.discordapp.Discord \
-com.visualstudio.code\
+com.visualstudio.code \
 com.microsoft.Edge
 ```
 
@@ -48,7 +48,7 @@ sed -i 's/\(Exec=.*\)/\1 --enable-features=UseOzonePlatform --ozone-platform=way
 **Настройка Microsoft Edge:**
 Добавляем wayland режим:
 ```bash
-cat << _EOF_ > "${HOME}/.var/app/com.microsoft.Edge/config/edge-flags.conf"
+cat << _EOF_ > "$HOME/.var/app/com.microsoft.Edge/config/edge-flags.conf"
 --ozone-platform=wayland
 --enable-features=UseOzonePlatform
 _EOF_

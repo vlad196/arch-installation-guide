@@ -14,7 +14,7 @@ yandex-disk setup
 proxy: no
 /mnt/sdb/YandexDisk
 
-### Yd-go (qt-апплет)
+### Yd-go (апплет)
 ```bash
-paru -S yd-go
+paru -S yd-go-git
 ```

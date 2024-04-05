@@ -11,11 +11,11 @@ sed '/# Default repositories/i\
 
 **Установка:**
 ```bash
-sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta ufw qt6-virtualkeyboard power-profiles-daemon phonon-qt6-vlc kmail
+sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta ufw qt6-virtualkeyboard power-profiles-daemon phonon-vlc kmail
 ```
 
 ```bash
-sudo -u vlad paru -Sy --asdeps cracklib galera judy perl-dbd-mariadb python-mysqlclient
+sudo -u vlad paru -Sy cracklib galera judy perl-dbd-mariadb python-mysqlclient
 ```
 >[!Note]
 >Если ставиться plasma 5, необходим ещё один пакет для wayland plasma-wayland-session.
@@ -23,11 +23,11 @@ sudo -u vlad paru -Sy --asdeps cracklib galera judy perl-dbd-mariadb python-mysq
 
 **Включаем экранный менеджер:**
 ```bash
-systemctl enable sddm.service
+sudo systemctl enable sddm.service
 ```
 Включаем power-profiles-daemon для powerdevil:
 ```bash
-systemctl enable power-profiles-daemon.service
+sudo systemctl enable power-profiles-daemon.service
 ```
 #### Для плавного перехода plymouth, нужно прописать следующее:
 **Для начала создаём папку, если её нет:**
@@ -52,6 +52,7 @@ _EOF_
 ### SDDM:
 **Создаём основной конфиг файл sddm(установим тему, numlock режим и т.д.):**
 ```bash
+sudo mkdir -p /etc/sddm.conf.d && \
 sudo bash -c 'cat << _EOF_ > /etc/sddm.conf.d/01_kde_settings.conf
 [Autologin]
 Relogin=false
@@ -74,7 +75,7 @@ _EOF_'
 ```
 **Указываем режим wayland и установленную виртуальную клавиатуру:**
 ```bash
-mkdir /etc/sddm.conf.d/ && \
+mkdir -p /etc/sddm.conf.d/ && \
 cat << _EOF_ >/etc/sddm.conf.d/10-wayland.conf
 [General]
 DisplayServer=wayland
@@ -84,28 +85,21 @@ _EOF_
 ### Настройка Dolphin:
 **Добавляем thumbnails для файлов:**
 ```bash
-paru -Sy --asdeps --needed kdegraphics-thumbnailers kimageformats5 libheif qt5-imageformats resvg kdesdk-thumbnailers  
-ffmpegthumbs raw-thumbnailer taglib kde-thumbnailer-apk
+paru -Sy --asdeps --needed ffmpegthumbs kde-cli-tools kdegraphics-thumbnailers kio-admin purpose libheif qt6-imageformats resvg kdesdk-thumbnailers raw-thumbnailer taglib kde-thumbnailer-apk
+
 ```
 
 ### Автозагрузка:
 **Делаем автозагрузку usbguard:**
 ```bash
-sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.config/autostart/usbguard-applet.desktop
-[Desktop Entry]
-Categories=System;
-Type=Application
-Name=Usbguard-applet
-Icon=usbguard-icon
-Comment=Usbguard QT applet
-TryExec=usbguard-applet-qt
-Exec=usbguard-applet-qt
-_EOF_'
+cat << _EOF_ > $HOME/.config/autostart/usbguard-qt.desktop
+[Desktop Entry]                                      Categories=System;                                   Comment=USBGuard-Qt                                  Exec=usbguard-qt                                     GenericName=USBGuard                                 Icon=usbguard-icon                                   Keywords=USB;USBGuard;Qt;                            Name=USBGuard                                        TryExec=usbguard-qt                                  Type=Application
+_EOF_
 ```
 
 **Делаем автозагрузку yd-go:**
 ```bash
-sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.config/autostart/yd-go-applet.desktop
+cat << _EOF_ > $HOME/.config/autostart/yd-go-applet.desktop
 [Desktop Entry]
 Categories=System;
 Type=Application
@@ -113,7 +107,7 @@ Name=yd-go-applet
 Comment=Yandex-disk QT applet
 TryExec=yd-go
 Exec=yd-go
-_EOF_'
+_EOF_
 ```
 # KDE настройка после перезагрузки
 ### Включение темы breeze для приложений GTK в Flatpak.
@@ -124,11 +118,12 @@ paru -S --asdep xdg-desktop-portal-gtk
 ```
 **Для приложений GTK ставим тему breeze:**
 ```bash
-flatpak install flathub org.gtk.Gtk3theme.Breeze
+flatpak install flathub org.gtk.Gtk3theme.Breeze
 ```
 **Глобально внедряем папку с GTK настройками:**
 ```bash
-cat << _EOF_ > "~/.local/share/flatpak/overrides/global"
+mkdir -p ~/.local/share/flatpak/overrides && \
+cat << _EOF_ > "$HOME/.local/share/flatpak/overrides/global"
 [Context]
 filesystems=xdg-config/gtk-3.0:ro;xdg-config/gtk-4.0:ro;
 _EOF_

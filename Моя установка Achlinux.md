@@ -19,8 +19,10 @@ ip -br a
 ```
 **Далее на машине-настройщике подключаемся по ssh к машине-клиенту**
 ```bash
-ssh root@<ip машины-клиента, который узнали выше>
+ssh ssh -o ServerAliveInterval=30 root@<ip машины-клиента, который узнали выше>
 ```
+>[!NOTE]
+>Добавил ServerAliveInterval=30, чтобы не было отключения при бездействии.
 # Часть 2. Подготовка дисков:
 ## Удаление данных с диска:
 ```bash
@@ -63,18 +65,18 @@ https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUK
 modprobe dm-crypt && \
 modprobe dm-mod
 ```
-**Шифруем swap раздел:**
+**Шифруем swap раздел в SHA 512:**
 ```bash
-cryptsetup -v luksFormat -s 512 -h sha512 /dev/nvme0n1p2
+cryptsetup --verbose luksFormat --key-size 512 --hash sha512 /dev/nvme0n1p2
 ```
 **Шифруем root раздел в SHA 512:**
 ```bash
-cryptsetup -v luksFormat -s 512 -h sha512 /dev/nvme0n1p3
+cryptsetup --verbose luksFormat --key-size 512 --hash sha512 /dev/nvme0n1p3
 ```
 **Открываем зашифрованные разделов:**
 ```bash
-cryptsetup luksOpen /dev/nvme0n1p2 swap && \
-cryptsetup luksOpen /dev/nvme0n1p3 root
+cryptsetup --allow-discards luksOpen /dev/nvme0n1p2 swap && \
+cryptsetup --allow-discards luksOpen /dev/nvme0n1p3 root
 ```
 **Экспортируем UUID дисков в переменные:**
 ```bash
@@ -94,7 +96,7 @@ mkswap -L swap $SWAP
 ```
 **Создание файловой системы f2fs:**
 ```bash
-mkfs.f2fs -f -O extra_attr,inode_checksum,sb_checksum,compression  $ROOT
+mkfs.f2fs -l "Arch Linux" -O extra_attr,inode_checksum,sb_checksum,compression  $ROOT
 ```
 >[!NOTE]
 >Для подробностей нужно идти на Archwiki, но тут, как минимум включена полезная компрессия
@@ -107,7 +109,7 @@ systemctl daemon-reload
 ```
 **Монтирование корневого раздела:**
 ```bash
-mount -o compress_algorithm=zstd:6,compress_chksum,gc_merge,lazytime $ROOT /mnt
+mount -o compress_algorithm=zstd:6,compress_chksum,atgc,gc_merge,lazytime $ROOT /mnt
 ```
 >[!NOTE]
 >Раздел смонтирован с рекомендуемыми Archwiki параметрами
@@ -336,7 +338,7 @@ sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 **Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
 ```bash
 sudo -u vlad paru -S --needed wget man f2fs-tools amd-ucode \
- efibootmgr networkmanager bluez pipewire pipewire-alsa noto-fonts-cjk ttf-hannom \
+ efibootmgr networkmanager bluez pipewire  pipewire-alsa noto-fonts-cjk ttf-hannom \
  wl-clipboard
 ```
 #### Установка HOOK для микроядра:
@@ -438,6 +440,12 @@ _EOF_
 cat << _EOF_ > /etc/kernel/cmdline-base
 options page_alloc.shuffle=1 root=$ROOT rootflags=atgc resume=$SWAP rw
 _EOF_
+```
+
+**Добавляем в переменные нужные ядра:**
+```bash
+export MAIN_KERNEL=linux \
+SECOND_KERNEL=linux-lts
 ```
 
 **Добавляем пресет для главного:**
@@ -628,12 +636,6 @@ cat << _EOF_ >> /etc/issue
     \e[1;36m/P^         ^q\ \e[0;37mTM
 _EOF_
 ```
-https://wiki.archlinux.org/title/ASCII_art
-```bash
-cat << _EOF_ > /etc/issue
-fortune -a | fmt -80 -s | $(shuf -n 1 -e cowsay cowthink) -$(shuf -n 1 -e b d g p s t w y) -f $(shuf -n 1 -e $(cowsay -l | tail -n +2)) -n
-_EOF_
-```
 ### Avahi
 
 >[!NOTE]
@@ -693,11 +695,11 @@ sudo -u vlad paru -S --needed python-notify2 python-psutil
 ```
 **Создаём группу аудита:**
 ```bash
-groupadd -r audit
+groupadd --system audit
 ```
-**Создаём добавляем юзера в группу аудита:**
+**Добавляем юзера в группу аудита:**
 ```bash
-gpasswd -a vlad audit
+usermod $USER -aG audit
 ```
 **Добавляем группу аудита в конфига аудита:**
 ```bash
@@ -749,7 +751,7 @@ sudo -u vlad paru -S --needed xdg-user-dirs
 
 **Указываем папки для типовых каталогов:**
 ```bash
-sudo -u vlad mkdir home/vlad/.config && \
+sudo -u vlad mkdir -p home/vlad/.config && \
 sudo -u vlad cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
 # This file is written by xdg-user-dirs-update
 # If you want to change or add directories, just edit the line you're
@@ -809,7 +811,7 @@ systemctl enable sshd.service
 Обязательно проверяем, что UKI файлы на 100% собраны и без ошибок
 Так как в этап создания initramfs теперь подвязаны драйвера nvidia и подпись файлов для secure boot,
 то теперь (а логичней сделать отдельный хук для этого) нужно чтобы хуки от nvidia и подписи срабатывали
-Нужно в конце сгенерировать mkibitcpio и подписать ядра:
+Нужно в конце сгенерировать mkinitcpio и подписать ядра:
 
 ```bash
 mkinitcpio -P ; sbctl sign-all
@@ -831,7 +833,8 @@ cryptsetup close /dev/mapper/swap
 reboot
 ```
 
-## Включаем secure boot и TPMtrusted compute в UEFI
+>[!Warning]
+>Включаем secure boot и TPMtrusted compute в UEFI
 
 ---
 # Всё что ниже нужно делать уже после перезагрузки системы
@@ -914,7 +917,7 @@ sudo bash -c "echo 'vm.swappiness=10'>> /etc/sysctl.d/99-sysctl.conf"
 Все подробности можно посмотреть на том же nvidia-tweaks
 
 ```bash
-mkdir -p ~/.config/environment.d ;\
+mkdir -p ~/.config/environment.d && \
 cat << _EOF_ >> ~/.config/environment.d/envvars.conf
 # Wayland environment
 SDL_VIDEODRIVER="wayland,x11" # Can break some native games
