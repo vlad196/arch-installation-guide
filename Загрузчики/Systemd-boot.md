@@ -35,18 +35,22 @@ _EOF_
 
 Добавляем PARTUUID раздела с другим загрузчиком и названием в переменные:
 ```bash
-export PART_ANOTHER_OS_1=<PARTUUID раздела>
-export Name_ANOTHER_OS_1=<Alt linux>
+export PART_ANOTHER_BOOT_1=$(lsblk -dno UUID /dev/sdc1)
+export Name_ANOTHER_OS_1="Alt linux"cat << _EOF_ > /efi/loader/entries/Alt-linux.conf
+title  Alt-linux
+efi     /shellx64.efi
+options -nointerrupt -noconsolein -noconsoleout Alt-linux.nsh
+_EOF_
 ```
 Создаём внешний скрипт для запуска с другого диска:
 ```bash
 cat << _EOF_ > /efi/Alt-linux.nsh
-PART_ANOTHER_OS_1:#TODO дописать местоположение EFI grub
+$PART_ANOTHER_BOOT_1:#TODO дописать местоположение EFI grub
 _EOF_
 ```
 Добавляем новую точку входа:
 ```bash
-cat << _EOF_ > esp/loader/entries/Alt-linux.conf
+cat << _EOF_ > /efi/loader/entries/Alt-linux.conf
 title  Alt-linux
 efi     /shellx64.efi
 options -nointerrupt -noconsolein -noconsoleout Alt-linux.nsh
