@@ -6,7 +6,7 @@ cp etc/kernel/cmdline /etc/kernel/cmdline-nvidia
 ```
 **В основном cmdline добавляем module_blacklist для модулей nvidia, чтобы не грузились, а также добавляем module_load для nouveau :**
 ```bash
-sed -i -e 's/$/ module_blacklist=nvidia, nvidia_modeset, nvidia_uvm, nvidia_drm module_load=nouveau/' /etc/kernel/cmdline
+sed -i -e 's/$/ module_blacklist=nvidia,nvidia_modeset,nvidia_uvm,nvidia_drm module_load=nouveau/' /etc/kernel/cmdline
 ```
 >[!NOTE]
 >Добавляем загрузку nouveau из-за того, что пакет nvidia-tools будет блокировать nouveau. Необходимо переопределить этот параметр на этапе загрузки.
