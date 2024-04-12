@@ -104,13 +104,13 @@ ln -s /dev/null /etc/modprobe.d/nvidia-utils.conf
 
 ```bash
 cat << _EOF_ > /etc/modprobe.d/nvidia-tweaks.conf
-options nvidia NVreg_PreserveVideoMemoryAllocations=1
+#options nvidia NVreg_PreserveVideoMemoryAllocations=1
 #
 # Allow to preserve memory allocations (Required to properly wake up from sleep mode). Not working with PRIME.
 options nvidia NVreg_EnableS0ixPowerManagement=1
 # An option for saving video memory. Uses s2idle power saving mode.
 
-#options nvidia NVreg_TemporaryFilePath=/var/tmp
+options nvidia NVreg_TemporaryFilePath=/var/tmp
 #
 # An alternative option for saving video memory. Turn on if s2idle energy saving mode is not working.
 
