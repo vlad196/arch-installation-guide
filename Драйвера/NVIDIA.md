@@ -4,18 +4,18 @@
 ```bash
 cp etc/kernel/cmdline /etc/kernel/cmdline-nvidia
 ```
-**В основном cmdline добавляем module_blacklist для модулей nvidia, чтобы не грузились, а также добавляем module_load для nouveau :**
+**В основном cmdline добавляем module_blacklist для модулей nvidia, чтобы не грузились:**
 ```bash
-sed -i -e 's/$/ module_blacklist=nvidia,nvidia_modeset,nvidia_uvm,nvidia_drm module_load=nouveau/' /etc/kernel/cmdline
+sed -i -e 's/$/ module_blacklist=nvidia,nvidia_modeset,nvidia_uvm,nvidia_drm/' /etc/kernel/cmdline
 ```
->[!NOTE]
->Добавляем загрузку nouveau из-за того, что пакет nvidia-tools будет блокировать nouveau. Необходимо переопределить этот параметр на этапе загрузки.
-
+**В cmdline-nvidia добавляем module_blacklist для модуля nouveau, чтобы не грузился :**
+```bash
+sed -i -e 's/$/ module_blacklist=nouveau/' /etc/kernel/cmdline
+```
 **Копируем нами используемый mkinitcpio.conf:**
 ```bash
 cp /etc/mkinitcpio.conf.d/mkinitcpio.conf /etc/mkinitcpio.conf.d/mkinitcpio-nvidia.conf
 ```
-
 
 **Создаём отдельный preset для ядра:**
 ```bash
@@ -80,6 +80,12 @@ sudo -u vlad paru -Sy --needed nvidia-dkms lib32-nvidia-utils mesa lib32-mesa
 ```
 >[!Note]
 >nvidia-beta-dkms может ругаться на зависимости, если они тоже были явно установлены, поэтому вместо nvidia-beta-dkms nvidia-utils-beta и nvidia-settings-beta можно просто nvidia-beta-dkms
+
+**Убираем module_blacklist в /dev/null, который появляется вместе с пакетом nvidia-utils:**
+```bash
+ln -s /dev/null /etc/modprobe.d/nvidia-utils.conf
+```
+
 ### NVIDIA TWEAKS
 Множественные исправления, большую часть которых взял отсюда (https://github.com/ventureoo/nvidia-tweaks)
 Исправляет следующее:
