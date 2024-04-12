@@ -1,7 +1,47 @@
 ## NVIDIA:
+
+**Копируем нами используемый cmdline для основного ядра:**
+```bash
+cp etc/kernel/cmdline /etc/kernel/cmdline-nvidia
+```
+**В основном cmdline добавляем module_blacklist для модулей nvidia, чтобы не грузились, а также добавляем module_load для nouveau :**
+```bash
+sed -i -e 's/$/ module_blacklist=nvidia, nvidia_modeset, nvidia_uvm, nvidia_drm module_load=nouveau/' /etc/kernel/cmdline
+```
+>[!NOTE]
+>Добавляем загрузку nouveau из-за того, что пакет nvidia-tools будет блокировать nouveau. Необходимо переопределить этот параметр на этапе загрузки.
+
+**Копируем нами используемый mkinitcpio.conf:**
+```bash
+cp /etc/mkinitcpio.conf.d/mkinitcpio.conf /etc/mkinitcpio.conf.d/mkinitcpio-nvidia.conf
+```
+
+
+**Создаём отдельный preset для ядра:**
+```bash
+cat << _EOF_ > /etc/mkinitcpio.d/$MAIN_KERNEL-nvidia.preset
+# mkinitcpio preset file for the '$MAIN_KERNEL-nvidia' package
+
+ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio-nvidia.conf"
+ALL_kver="/boot/vmlinuz-$MAIN_KERNEL"
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf.d/mkinitcpio-nvidia.conf"
+#default_image="/boot/initramfs-$MAIN_KERNEL-nvidia.img"
+default_uki="/efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia.efi"
+default_options="--cmdline /etc/kernel/cmdline-nvidia"
+
+#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio-nvidia.conf"
+#fallback_image="/boot/initramfs-$MAIN_KERNEL-nvidia-fallback.img"
+fallback_uki="/efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia-fallback.efi"
+fallback_options="-S autodetect"
+_EOF_
+```
+
 **Добавляем модули драйверов nvidia:**
 ```bash
-sed -e 's/\(MODULES=(\)/\1nvidia nvidia_modeset nvidia_uvm nvidia_drm/' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf 
+sed -e 's/\(MODULES=(\)/\1nvidia nvidia_modeset nvidia_uvm nvidia_drm/' -i /etc/mkinitcpio.conf.d/mkinitcpio-nvidia.conf
 ```
 #### Установка HOOK для драйверов:
 **Hook для Пересборки модулей ядра с драйверами nvidia при обновлении ядра**
@@ -24,7 +64,7 @@ Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux*) exit 0; esac; done;
 _EOF_
 ```
 >[!NOTE]
-К сожалению, с AUR скриптами хуки не работают. Заработает если будет обычный пакет nvidia-dkms
+>К сожалению, с AUR скриптами хуки не работают. Заработает если будет обычный пакет nvidia-dkms
 
 **Добавление репозиториев mesa-git (Репозиторий с последними скомилированными бинарниками mesa)**
 ```bash
@@ -36,7 +76,7 @@ sed '/# Default repositories/i\
 ```
 **Устанавливаем пакеты:**
 ```bash
-sudo -u vlad paru -Sy --needed nvidia-beta-dkms lib32-nvidia-utils mesa-git lib32-mesa-git
+sudo -u vlad paru -Sy --needed nvidia-dkms lib32-nvidia-utils mesa lib32-mesa
 ```
 >[!Note]
 >nvidia-beta-dkms может ругаться на зависимости, если они тоже были явно установлены, поэтому вместо nvidia-beta-dkms nvidia-utils-beta и nvidia-settings-beta можно просто nvidia-beta-dkms
@@ -52,20 +92,21 @@ sudo -u vlad paru -Sy --needed nvidia-beta-dkms lib32-nvidia-utils mesa-git lib3
 Закомментируемы некоторые опции, т.к. лично у меня они либо не нужны, либо не поддерживаются, либо вовсе влекут за собой проблемы. 
 Закомментированы следующие:
 - NVreg_EnableResizableBar т.к. моё устройство не поддерживает resizable bar
-- NVreg_TemporaryFilePath т.к. не без него ждущий режим работает хорошо, а сама опция подразумевает лишнее использование циклов записи для устройства хранения
+- NVreg_TemporaryFilePath т.к. без него ждущий режим работает хорошо, если есть режим s2idle, а сама опция подразумевает лишнее использование циклов записи для устройства хранения
 - NVreg_RegistryDwords т.к. вроде как необходим для некоторых ноутбуков для правильного отображения nvidia-settings и он мне не нужен
-- NVreg_EnableGpuFirmware т.к. лично у меня этот параметр ломает выход из спящего режима видеокарты
 **Добавляем в modprobe.d:**
 
 ```bash
 cat << _EOF_ > /etc/modprobe.d/nvidia-tweaks.conf
 options nvidia NVreg_PreserveVideoMemoryAllocations=1
 #
-# Allow to preserve memory allocations (Required to properly wake up from sleep mode)
+# Allow to preserve memory allocations (Required to properly wake up from sleep mode). Not working with PRIME.
+options nvidia NVreg_EnableS0ixPowerManagement=1
+# An option for saving video memory. Uses s2idle power saving mode.
 
 #options nvidia NVreg_TemporaryFilePath=/var/tmp
 #
-# Msy help with suspend issue. Turn on if suspend not working.
+# An alternative option for saving video memory. Turn on if s2idle energy saving mode is not working.
 
 options nvidia NVreg_UsePageAttributeTable=1
 #
@@ -75,7 +116,7 @@ options nvidia NVreg_UsePageAttributeTable=1
 # and instruction set more efficiently and faster.
 # If your system can support this feature, it should improve CPU performance.
 
-options nvidia NVreg_InitializeSystemMemoryAllocations=0
+#options nvidia NVreg_InitializeSystemMemoryAllocations=0
 #
 # NVreg_InitializeSystemMemoryAllocations=0 (Default 1) - Disables
 # clearing system memory allocation before using it for the GPU.
@@ -86,28 +127,15 @@ options nvidia NVreg_InitializeSystemMemoryAllocations=0
 
 options nvidia NVreg_EnableStreamMemOPs=1
 #
-# NVreg_EnableStreamMemOPs=1 (Default 0) - Activates the support for
 # CUDA Stream Memory Operations in user-mode applications.
 
-#options nvidia NVreg_RegistryDwords="PowerMizerDefaultAC=0x1"
+
+#options nvidia NVreg_RegistryDwords="EnableBrightnessControl=1 PowerMizerEnable=0x1;PerfLevelSrc=0x3322;PowerMizerDefaultAC=0x1"
 #
-# Need for some notebooks, for correctly open nvidia-settings?
+# Power Setup (PowerMizer). Maximum performance.
 
-softdep nvidia post: nvidia-uvm
-#
-# Make a soft dependency for nvidia-uvm as adding the module loading to
-# /usr/lib/modules-load.d/nvidia-uvm.conf for systemd consumption, makes the
-# configuration file to be added to the initrd but not the module, throwing an
-# error on plymouth about not being able to find the module.
-# Ref: /usr/lib/dracut/modules.d/00systemd/module-setup.sh
 
-# Even adding the module is not the correct thing, as we don't want it to be
-# included in the initrd, so use this configuration file to specify the
-# dependency.
-
-options nvidia NVreg_EnableStreamMemOPs=1
 options nvidia NVreg_DynamicPowerManagement=0x02
-options nvidia NVreg_EnableS0ixPowerManagement=1
 #
 # Enable complete power management. From:
 # file:///usr/share/doc/nvidia-driver/html/powermanagement.html
@@ -129,12 +157,13 @@ options nvidia NVreg_EnableGpuFirmware=1
 #for suspend and resume when using GSP firmware. This feature can also work badly on PRIME configurations,
 #so please check dmesg logs for errors if you want to use this.
 
-blacklist nouveau
-alias nouveau off
+#blacklist nouveau
+#alias nouveau off
 #
 # Nouveau must be blacklisted here as well beside from the initrd to avoid a
 # delayed loading (for example on Optimus laptops where the Nvidia card is not
 # driving the main display).
+# Bur they allreay blacklisted nvidia-utils package in /usr/lib/modprobe.d/nvidia-utils.conf
 
 options nvidia_drm modeset=1
 
@@ -142,9 +171,9 @@ options nvidia_drm fbdev=1
 # This options unlock new nvidia framebuffer
 _EOF_
 ```
-
+**Генерируем initramfs:**
 ```bash
-echo "nvidia-uvm" > /etc/modules-load.d/nvidia-uvm.conf
+mkinitcpio -P
 ```
 
 **Включаем интерфейсы питания от nvidia:**
