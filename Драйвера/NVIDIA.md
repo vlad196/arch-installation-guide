@@ -10,7 +10,7 @@ sed -i -e 's/$/ module_blacklist=nvidia,nvidia_modeset,nvidia_uvm,nvidia_drm/' /
 ```
 **В cmdline-nvidia добавляем module_blacklist для модуля nouveau, чтобы не грузился :**
 ```bash
-sed -i -e 's/$/ module_blacklist=nouveau/' /etc/kernel/cmdline
+sed -i -e 's/$/ module_blacklist=nouveau/' /etc/kernel/cmdline-nvidia
 ```
 **Копируем нами используемый mkinitcpio.conf:**
 ```bash
