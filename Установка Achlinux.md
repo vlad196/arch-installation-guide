@@ -461,7 +461,7 @@ PRESETS=('default' 'fallback')
 #default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
 #default_image="/boot/initramfs-$MAIN_KERNEL.img"
 default_uki="/efi/EFI/Linux/arch-$MAIN_KERNEL.efi"
-default_options="--cmdline /etc/kernel/cmdline-base"
+default_options="--cmdline /etc/kernel/cmdline"
 
 #fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
 #fallback_image="/boot/initramfs-$MAIN_KERNEL-fallback.img"
