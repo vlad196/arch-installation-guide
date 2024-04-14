@@ -14,6 +14,7 @@ pacman -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst
 **Добавление репозиториев chaotic-aur:**
 ```bash
 sed '/# Default repositories/i\
+\# Chaotic-aur\
 \[chaotic-aur]\
 \Include = /etc/pacman.d/chaotic-mirrorlist
 ' -i /etc/pacman.conf
@@ -30,6 +31,7 @@ sudo -u vlad paru -Sy --needed lib32-vulkan-nouveau-git vulkan-nouveau-git
 **Добавление репозиториев mesa-git (Репозиторий с последними скомпилированными бинарниками mesa)**
 ```bash
 sed '/# Default repositories/i\
+\# Mesa-git\
 \[mesa-git\]\
 \SigLevel = Never\
 \Server = https://pkgbuild.com/~lcarlier/\$repo\/\$arch\
@@ -42,12 +44,6 @@ sudo -u vlad paru -Sy mesa-git lib32-mesa-git
 ```
 ---
 #### Power Managemenet:
-Для видеокарт Ampere и Turing можно включить поддержку управления питанием.
-**В параметры ядра добавляем:**
-```bash
-sed -i -e 's/$/ nouveau.config=NvGspRm=1/' /etc/kernel/cmdline
-```
-TODO проверить!
 Для видеокарт Ampere и Turing можно включить поддержку управления питанием.
 **Добавляем в modprobe.d:**
 
