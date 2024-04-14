@@ -169,7 +169,7 @@ options nvidia NVreg_EnableGpuFirmware=1
 # Nouveau must be blacklisted here as well beside from the initrd to avoid a
 # delayed loading (for example on Optimus laptops where the Nvidia card is not
 # driving the main display).
-# Bur they allreay blacklisted nvidia-utils package in /usr/lib/modprobe.d/nvidia-utils.conf
+# But they allreay blacklisted nvidia-utils package in /usr/lib/modprobe.d/nvidia-utils.conf
 
 options nvidia_drm modeset=1
 
