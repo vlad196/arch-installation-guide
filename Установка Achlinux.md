@@ -126,13 +126,14 @@ mount --mkdir -o uid=0,gid=0,fmask=0137,dmask=0027  /dev/nvme0n1p1 /mnt/efi
 >[!NOTE]
 >Делаем маску 0077, ради того, чтобы из под обычного пользователя не было доступа к этому разделу. Собственно, systemd-boot при установке про это и говорит
 >``` bash
-!Mount point '/boot' which backs the random seed file is world accessible, which is a security hole! !  
-! Random seed file '/boot/loader/random-seed' is world accessible, which is a security hole! ! ```
+>!Mount point '/boot' which backs the random seed file is world accessible, which is a security hole! !  
+>! Random seed file '/boot/loader/random-seed' is world accessible, which is a security hole! !
+>```
 
 **Мой дополнительный диск:**
 ```bash
 mount --mkdir /dev/sdb /mnt/mnt/sdb
->```
+```
 # Часть 3. Установка до подмены корневого раздела:
 
 **Подбор зеркал:**
@@ -251,12 +252,10 @@ sed -i 's/\!lto/lto/g' /etc/makepkg.conf
 **Скачиваем PARU и входим в его каталог:**
 ```bash
 sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru && \
-cd /home/vlad/bin/paru/
 ```
 **Создаём пакет, устанавливаем его и переходим обратно в корень**
 ```bash
-sudo -u vlad makepkg -si && \
-cd /
+(cd /home/vlad/bin/paru/ && sudo -u vlad makepkg -si)
 ```
 
 **Добавляем возможность редактирования в paru:**
