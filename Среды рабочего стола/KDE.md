@@ -20,6 +20,7 @@ sudo -u vlad paru -Sy cracklib galera judy perl-dbd-mariadb python-mysqlclient
 >[!Note]
 >Если ставиться plasma 5, необходим ещё один пакет для wayland plasma-wayland-session.
 >Для роли phonon backend всегда выбираем VLC, т.к. на сегодня нормально [только он и поддерживается](https://community.kde.org/Distributions/Packaging_Recommendations#Non-Plasma_packages).
+>При выборе tesdate нужно быть внимательней! Наш регион 96
 
 **Включаем экранный менеджер:**
 ```bash
