@@ -83,6 +83,8 @@ DisplayServer=wayland
 CompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1 --inputmethod qtvirtualkeyboard
 _EOF_
 ```
+
+# KDE настройка после перезагрузки
 ### Настройка Dolphin:
 **Добавляем thumbnails для файлов:**
 ```bash
@@ -110,7 +112,7 @@ TryExec=yd-go
 Exec=yd-go
 _EOF_
 ```
-# KDE настройка после перезагрузки
+
 ### Включение темы breeze для приложений GTK в Flatpak.
 
 **Удостоверяемся, что установлены порталы gtk:**
