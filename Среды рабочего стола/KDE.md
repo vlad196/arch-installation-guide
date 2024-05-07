@@ -11,11 +11,11 @@ sed '/# Default repositories/i\
 
 **Установка:**
 ```bash
-sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta ufw qt6-virtualkeyboard power-profiles-daemon phonon-vlc kmail
+sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta ufw qt6-virtualkeyboard power-profiles-daemon kmail kio5-extras kdoctools5 flatpak-kcm plymouth-kcm
 ```
 
 ```bash
-sudo -u vlad paru -Sy cracklib galera judy perl-dbd-mariadb python-mysqlclient
+sudo -u vlad paru -Sy cracklib galera judy perl-dbd-mariadb python-mysqlclient python-libevdev python-pyudev gtk3 sshfs kplotting python-gobject kdepim-addons kleopatra kdepim-addons languagetool python-lsp-server unrar p7zip lzop lrzip arj dosfstools exfat-utils fatresize nilfs-utils aspell hspell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools  xdg-desktop-portal-gtk kdepim-addons
 ```
 >[!Note]
 >Если ставиться plasma 5, необходим ещё один пакет для wayland plasma-wayland-session.
