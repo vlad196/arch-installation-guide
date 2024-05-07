@@ -96,7 +96,16 @@ paru -Sy --asdeps --needed ffmpegthumbs kde-cli-tools kdegraphics-thumbnailers k
 **Делаем автозагрузку usbguard:**
 ```bash
 cat << _EOF_ > $HOME/.config/autostart/usbguard-qt.desktop
-[Desktop Entry]                                      Categories=System;                                   Comment=USBGuard-Qt                                  Exec=usbguard-qt                                     GenericName=USBGuard                                 Icon=usbguard-icon                                   Keywords=USB;USBGuard;Qt;                            Name=USBGuard                                        TryExec=usbguard-qt                                  Type=Application
+[Desktop Entry]                                      
+Categories=System;                                   
+Comment=USBGuard-Qt                                  
+Exec=usbguard-qt                                     
+GenericName=USBGuard                                 
+Icon=usbguard-icon                                   
+Keywords=USB;USBGuard;Qt;                            
+Name=USBGuard                                        
+TryExec=usbguard-qt                                  
+Type=Application
 _EOF_
 ```
 
@@ -105,11 +114,13 @@ _EOF_
 cat << _EOF_ > $HOME/.config/autostart/yd-go-applet.desktop
 [Desktop Entry]
 Categories=System;
-Type=Application
-Name=yd-go-applet
 Comment=Yandex-disk QT applet
-TryExec=yd-go
 Exec=yd-go
+GenericName=Yandex Disk
+Keywords=Yandex Disk;yd-go;Qt; 
+Name=yd-go-applet
+TryExec=yd-go
+Type=Application
 _EOF_
 ```
 

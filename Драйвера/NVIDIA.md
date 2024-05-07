@@ -181,6 +181,10 @@ _EOF_
 ```bash
 mkinitcpio -P
 ```
+**Подписываем linux efi приложения с зашитыми ядрами, модулями, конфигами и т.п.:**
+```bash
+sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia.efi && \
+sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia-fallback.efi
 
 **Включаем интерфейсы питания от nvidia:**
 ```bash

@@ -12,10 +12,7 @@ flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flat
 ```bash
 sudo flatpak install flathub md.obsidian.Obsidian \
 org.telegram.desktop \
-com.valvesoftware.Steam \
-com.discordapp.Discord \
-com.visualstudio.code \
-com.microsoft.Edge
+com.discordapp.Discord
 ```
 
 **Настройка Obsidian**
