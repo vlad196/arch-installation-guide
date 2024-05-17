@@ -50,39 +50,7 @@ ExecStartPost=-/usr/bin/plymouth quit --retain-splash
 _EOF_
 ```
 
-### SDDM:
-**Создаём основной конфиг файл sddm(установим тему, numlock режим и т.д.):**
-```bash
-sudo mkdir -p /etc/sddm.conf.d && \
-sudo bash -c 'cat << _EOF_ > /etc/sddm.conf.d/01_kde_settings.conf
-[Autologin]
-Relogin=false
-Session=
-User=
 
-[General]
-HaltCommand=/usr/bin/systemctl poweroff
-RebootCommand=/usr/bin/systemctl reboot
-Numlock=on
-
-
-[Theme]
-Current=breeze
-
-[Users]
-MaximumUid=60513
-MinimumUid=1000
-_EOF_'
-```
-**Указываем режим wayland и установленную виртуальную клавиатуру:**
-```bash
-mkdir -p /etc/sddm.conf.d/ && \
-cat << _EOF_ >/etc/sddm.conf.d/10-wayland.conf
-[General]
-DisplayServer=wayland
-CompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1 --inputmethod qtvirtualkeyboard
-_EOF_
-```
 
 # KDE настройка после перезагрузки
 ### Настройка Dolphin:

@@ -45,6 +45,9 @@ sudo -u vlad paru -Sy mesa-git lib32-mesa-git
 ---
 #### Power Managemenet:
 Для видеокарт Ampere и Turing можно включить поддержку управления питанием.
+
+TODO: перепроверить. Похоже, что сейчас не работает и нужно вставлять в параметры ядра `options.nouveau.config=NvGspRm=1`
+
 **Добавляем в modprobe.d:**
 
 ```bash
@@ -52,6 +55,7 @@ cat << _EOF_ > /etc/modprobe.d/nouveau-power-management.conf
 options nouveau config NvGspRm=1
 _EOF_
 ```
+
 #### Ранняя загрузка драйвера:
 >[!NOTE]
 Драйвер загружается сам во время хука KMS, но можно форсировать более раннюю загрузку, добавив nouveau в модули. Видеодрайвер загружается чуть раньше и нет переключения видеопотока во время текстовой загрузки (Нет мерцания экрана).
@@ -61,6 +65,31 @@ _EOF_
 ```bash
 sed -e 's/\(MODULES=(\)/\1nouveau/' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf 
 ```
+### Systemd хук для юнитов от nvidia (Если параллельно установлен проприетарный драйвер):
+**Для начала создаём папку:**
+```bash
+mkdir /etc/systemd/system/nvidia-switch.service.d
+```
+
+```bash
+cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/mask-nvidia.service
+[Unit]
+Description=Mask NVIDIA services for Nouveau
+ConditionPathExists!=/dev/nvidia0
+ConditionPathExists=/etc/systemd/system/systemd-suspend.service.wants/nvidia-suspend.service
+ConditionPathExists=/etc/systemd/system/systemd-hibernate.service.wants/nvidia-hibernate.service
+ConditionPathExists=/etc/systemd/system/systemd-suspend.service.wants/nvidia-resume.service
+ConditionPathExists=/etc/systemd/system/systemd-hibernate.service.wants/nvidia-resume.service
+
+[Service]
+Type=Oneshot
+ExecStart=/usr/bin/systemctl mask nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
+
+[Install]
+WantedBy=multi-user.target
+_EOF_
+```
+
 #### Аппаратное ускорение:
 >[!NOTE]
 Всё делится на 3 части. 1 Карты с видео движком, 2 карты без видео движка и 3, те что не поддерживаются:
