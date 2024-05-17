@@ -194,14 +194,14 @@ _EOF_
 #### Создание хоста:
 **Создание имени хоста:**
 ```bash
-echo "arch" >> /etc/hostname
+echo "ArchLinux" >> /etc/hostname
 ```
 **Создание внутренней сети хоста:**
 ```bash
 cat << _EOF_ >> /etc/hosts
 127.0.0.1		localhost
 ::1			localhost
-127.0.1.1		arch.localdomain	arch
+127.0.1.1		ArchLinux.localdomain	ArchLinux
 _EOF_
 ```
 ### Создание пользователя:
