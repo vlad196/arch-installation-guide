@@ -186,11 +186,12 @@ echo LANG=ru_RU.UTF-8 >> /etc/locale.conf
 ```bash
 cat <<- _EOF_ > /etc/vconsole.conf
 	KEYMAP=ruwin_alt_sh-UTF-8
-	FONT=cyr-sun16
+	FONT=ter-v16n
 _EOF_
 ```
 >[!NOTE]
 >ruwin_alt_sh-UTF-8 раскладка, в отличии от раскладки, предлагаемой в "Installation guide" даёт возможность в режиме терминала менять раскладку через alt + shift
+>ter-v16n обычно, находиться внутри самого ядра. Есть проблема с тем, что после `splash` не загружаются внешние шрифты, поэтому выбрал из ядра тот, который поддерживает utf-8.
 #### Создание хоста:
 **Создание имени хоста:**
 ```bash
