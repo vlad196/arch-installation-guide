@@ -10,7 +10,10 @@ paru -S --needed neovim npm ripgrep lazygit wl-clipboard tree-sitter
 ### Astronvim
 **Установка:**
 ```bash
-git clone --depth 1 https://github.com/AstroNvim/AstroNvim ~/.config/nvim
+git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim
+# remove template's git connection to set up your own later
+rm -rf ~/.config/nvim/.git
+nvim
 ```
 
 #### Дальнейшая настройка:
@@ -29,5 +32,5 @@ nvim
 ```
 **Установка дебаггеров для языков:**
 ```
-:DapInstall python javascript bash
+:DapInstall python js bash
 ```
