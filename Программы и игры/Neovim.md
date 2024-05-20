@@ -1,6 +1,6 @@
 **Установка необходимых пакетов:**
 ```bash
-paru -S --needed neovim npm ripgrep lazygit wl-clipboard tree-sitter
+paru -S --needed neovim npm ripgrep lazygit wl-clipboard tree-sitter tree-sitter-markdown tree-sitter-python
 ```
 >[!Info]
 >rigrep - инструмент, который ищет файлы по описанным патернам
