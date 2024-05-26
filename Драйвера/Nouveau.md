@@ -70,51 +70,6 @@ sed -e 's/\(MODULES=(\)/\1nouveau/' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf
 ```bash
 mkdir /etc/systemd/system/nvidia-switch.service.d
 ```
-**Добавляем юнит для маскирования юнитов от nvidia, когда nouveau запущен**
-```bash
-cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/mask-nvidia.service
-[Unit]
-Description=Mask NVIDIA services for Nouveau
-ConditionPathExists!=/dev/nvidia0
-ConditionPathExists=/etc/systemd/system/systemd-suspend.service.wants/nvidia-suspend.service
-ConditionPathExists=/etc/systemd/system/systemd-hibernate.service.wants/nvidia-hibernate.service
-ConditionPathExists=/etc/systemd/system/systemd-suspend.service.wants/nvidia-resume.service
-ConditionPathExists=/etc/systemd/system/systemd-hibernate.service.wants/nvidia-resume.service
-
-[Service]
-Type=Oneshot
-ExecStart=/usr/bin/systemctl mask nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
-
-[Install]
-WantedBy=multi-user.target
-_EOF_
-```
-
-**Добавляем юнит для снятия маски юнитов nvidia, если сейчас загружен проприетарный драйвер и до этого они были выключены:**
-```bash
-cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/unmask-nvidia.service
-[Unit]
-Description=Unmask NVIDIA services
-ConditionPathExists=/dev/nvidia0
-ConditionPathExists!=/etc/systemd/system/systemd-suspend.service.wants/nvidia-suspend.service
-ConditionPathExists!=/etc/systemd/system/systemd-hibernate.service.wants/nvidia-hibernate.service
-ConditionPathExists!=/etc/systemd/system/systemd-suspend.service.wants/nvidia-resume.service
-ConditionPathExists!=/etc/systemd/system/systemd-hibernate.service.wants/nvidia-resume.service
-
-[Service]
-Type=Oneshot
-ExecStart=/usr/bin/systemctl unmask nvidia-suspend.service nvidia-hibernate.service nvidia-resume.service
-
-[Install]
-WantedBy=multi-user.target
-
-_EOF_
-```
-
-**Активируем их:**
-```bash
-systemctl enable mask-nvidia.service unmask-nvidia.service
-```
 
 #### Аппаратное ускорение:
 >[!NOTE]
