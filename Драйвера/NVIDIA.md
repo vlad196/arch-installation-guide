@@ -233,16 +233,3 @@ _EOF_
 ```bash
 systemctl enable mask-nvidia.service unmask-nvidia.service
 ```
-
-**Заменяем правила udev, которые запускаются с ошибкой. Последствий ошибки я не заметил, кроме того, что устройства /dev/ появляются на позднем этапе:**
-
-```bash
-cat << _EOF_ > /etc/udev/rules.d/60-nvidia.rules
-# Make sure device nodes are present even when the DDX is not started for the Wayland/EGLStream case
-KERNEL=="nvidia_modeset", RUN+="/usr/bin/bash -c '/usr/bin/mknod -Z -m 666 /dev/nvidiactl c \$\$(grep nvidia\$\$ /proc/devices | cut -d \  -f 1) 255'"
-KERNEL=="nvidia_modeset", RUN+="/usr/bin/bash -c 'for i in \$\$(cat /proc/driver/nvidia/gpus/*/information | grep Minor | cut -d \  -f 4); do /usr/bin/mknod -Z -m 666 /dev/nvidia\$\${i} c \$\$(grep nvidia\$\$ /proc/devices | cut -d \  -f 1) \$\${i}; done'"
-KERNEL=="nvidia_modeset", RUN+="/usr/bin/bash -c '/usr/bin/mknod -Z -m 666 /dev/nvidia-modeset c \$\$(grep nvidia-modeset /proc/devices | cut -d \  -f 1) 254'"
-KERNEL=="nvidia_uvm", RUN+="/usr/bin/bash -c '/usr/bin/mknod -Z -m 666 /dev/nvidia-uvm c \$\$(grep nvidia-uvm /proc/devices | cut -d \  -f 1) 0'"
-KERNEL=="nvidia_uvm", RUN+="/usr/bin/bash -c '/usr/bin/mknod -Z -m 666 /dev/nvidia-uvm-tools c \$\$(grep nvidia-uvm /proc/devices | cut -d \  -f 1) 1'"
-_EOF_
-```
