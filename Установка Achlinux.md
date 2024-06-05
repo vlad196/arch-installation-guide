@@ -372,8 +372,23 @@ _EOF_
 >Позднее обновление микрокода, начиная с ядра 5.19 стало небезопасным и по умолчанию оно отключено. Поэтому часть про позднее обновление я удалил.
 >(Написал, чтобы не забыть и опять не выписать из переведённого вики)
 ## Первоначальная настройка:
-### Включение сеть и bluetooth:
-**Включаем юнит менеджера сети и bluetooth:**
+### Включение и настройка сети и bluetooth:
+>[!NOTE]
+> Если не включить экспериментальные функции для bluetooth, в journald будут предупреждения о отсутствии поддержки некоторых плагинов:
+> ```bash
+> src/plugin.c:plugin_init() System does not support micp plugin
+> src/plugin.c:plugin_init() System does not support vcp plugin
+> src/plugin.c:plugin_init() System does not support mcp plugin
+> src/plugin.c:plugin_init() System does not support bass plugin
+> src/plugin.c:plugin_init() System does not support bap plugin
+>```
+> Проблем от отсутствия поддержки плагинов я не заметил, поэтому настройка необязательна.
+
+**Включаем экспериментальные функции bluetooth, чтобы не было предупреждений в journald:**
+```bash
+sed '/Enables D-Bus experimental interfaces/{n;n;s/^#//;s/false/true/;}' -i /etc/bluetooth/main.conf
+```
+**Включаем юниты менеджера сети и bluetooth:**
 ```bash
 systemctl enable NetworkManager.service && \
 systemctl enable bluetooth.service
@@ -430,9 +445,12 @@ _EOF_
 >**page_alloc.shuffle=1** - Этот параметр рандомизирует свободные списки
 > распределителя страниц. Улучшает производительность при работе с ОЗУ с очень быстрыми накопителями (NVMe, Optane). Подробнее [тут](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e900a918b0984ec8f2eb150b8477a47b75d17692).
 >Доп. информация здесь: https://ventureo.codeberg.page/source/kernel-parameters.html
+>
 >**root=** - опция, указывающая какой раздел грузить как root (в данном случае это логический диск)
 >resume= -опция, показывающий системе swap раздел, необходимый при сне.
+>
 >**rootflags=atgc** - опцию, которую я не расшифровал, но тут написано зачем оно:https://wiki.archlinux.org/title/F2FS#Remounting_impossible_with_some_options
+>
 >**rw** - разрешение на чтение запись раздела
 
 **Добавим опции для вспомогательного ядра (В итоге, он как запасной имеет минимальные для загрузки параметры, например будет в дальнейшем без plymouth параметров):**
