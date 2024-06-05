@@ -387,6 +387,8 @@ _EOF_
 **Включаем экспериментальные функции bluetooth, чтобы не было предупреждений в journald:**
 ```bash
 sed '/Enables D-Bus experimental interfaces/{n;n;s/^#//;s/false/true/;}' -i /etc/bluetooth/main.conf
+sed '/Enables D-Bus testing interfaces/{n;n;s/^#//;s/false/true/;}' -i /etc/bluetooth/main.conf
+sed '/KernelExperimental/{s/^#//;s/false/true/;}' -i /etc/bluetooth/main.conf
 ```
 **Включаем юниты менеджера сети и bluetooth:**
 ```bash
