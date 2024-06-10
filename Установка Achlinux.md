@@ -401,12 +401,16 @@ systemctl enable bluetooth.service
 cp /etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/mkinitcpio.conf 
 ```
 
-**Редактировать hook mkinitcpio и включаем туда модули systemd и после block хуки sd encrypt и resume:**
+**Редактировать hook mkinitcpio и включаем туда модули systemd и после block хуки sd encrypt:**
 ```bash
 sed -i '/^HOOKS=/ s/udev/systemd/' /etc/mkinitcpio.conf.d/mkinitcpio.conf  && \
 sed -i '/^HOOKS=/ s/keymap consolefont/sd-vconsole/' /etc/mkinitcpio.conf.d/mkinitcpio.conf && \
-sed -i "/^HOOKS=/ s/\(block\)\(.*\)$/\1 sd-encrypt resume\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf
+sed -i "/^HOOKS=/ s/\(block\)\(.*\)$/\1 sd-encrypt\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf
 ```
+>[!NOTE]
+>Когда есть systemd, хук resume не нужен
+>https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Configure_the_initramfs 
+
 **Добавляем /etc/crypttab.initramfs: **
 ```bash
 cat << _EOF_ > /etc/crypttab.initramfs
