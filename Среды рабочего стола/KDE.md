@@ -15,7 +15,7 @@ sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-met
 ```
 
 ```bash
-sudo -u vlad paru -Sy cracklib galera judy perl-dbd-mariadb python-mysqlclient python-libevdev python-pyudev gtk3 sshfs kplotting python-gobject kdepim-addons kleopatra kdepim-addons languagetool python-lsp-server unrar p7zip lzop lrzip arj dosfstools exfat-utils fatresize nilfs-utils aspell hspell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools  xdg-desktop-portal-gtk kdepim-addons cdemu-daemon
+sudo -u vlad paru -Sy cracklib galera judy perl-dbd-mariadb python-mysqlclient python-libevdev python-pyudev gtk3 sshfs kplotting python-gobject kdepim-addons kleopatra kdepim-addons languagetool python-lsp-server unrar p7zip lzop lrzip arj dosfstools exfat-utils fatresize nilfs-utils aspell hspell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools  xdg-desktop-portal-gtk kdepim-addons kde-cdemu-manager
 ```
 >[!Note]
 >Если ставиться plasma 5, необходим ещё один пакет для wayland plasma-wayland-session.
