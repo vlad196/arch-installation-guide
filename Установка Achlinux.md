@@ -913,7 +913,7 @@ test -c /dev/tpm0 && echo OK || echo FAIL
 sudo cryptsetup luksHeaderBackup /dev/nvme0n1p3 --header-backup-file /mnt/sdb/header-nvme0n1p3.img
 ```
 %%
-!!! НАДО ПОСМОТРЕТЬ, КАК ВОССТАНАВЛИВАТЬ ЭТИ ЗАГОЛОВКИ, НА БУДУЩЕЕ
+!!! Проверить просто sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 . Должно теперь работать без указания устройства
 %%
 **Привязываем luks к systemd-cryptenroll и внедряем в tpm ключ:**
 ```bash
