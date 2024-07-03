@@ -74,7 +74,6 @@ _EOF_
 ```bash
 sed '/# Default repositories/i\
 \[mesa-git\]\
-\SigLevel = Never\
 \Server = https://pkgbuild.com/~lcarlier/\$repo\/\$arch\
 ' -i /etc/pacman.conf
 ```
