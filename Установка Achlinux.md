@@ -75,7 +75,7 @@ cryptsetup --verbose luksFormat --key-size 512 --hash sha512 /dev/nvme0n1p3
 ```
 **Открываем зашифрованные разделов:**
 ```bash
-cryptsetup --allow-discards luksOpen /dev/nvme0n1p2 swap && \
+cryptsetup luksOpen /dev/nvme0n1p2 swap && \
 cryptsetup --allow-discards luksOpen /dev/nvme0n1p3 root
 ```
 **Экспортируем UUID дисков в переменные:**
@@ -415,7 +415,7 @@ sed -i "/^HOOKS=/ s/\(block\)\(.*\)$/\1 sd-encrypt\2/" /etc/mkinitcpio.conf.d/mk
 ```bash
 cat << _EOF_ > /etc/crypttab.initramfs
 # Mount /dev/mapper/swap re-encrypting it with a fresh key each reboot
-swap UUID=$NVME0N1P2 none timeout=180,tpm2-device=auto,discard
+swap UUID=$NVME0N1P2 none timeout=180,tpm2-device=auto
 # Mount /dev/mapper/root with the key from TPM
 root UUID=$NVME0N1P3 none timeout=180,tpm2-device=auto,discard
 _EOF_
