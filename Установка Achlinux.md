@@ -286,9 +286,10 @@ sed '/\[core-testing\]/i\
 # Default repositories\
 ' -i /etc/pacman.conf
 ```
-**Раcкомментируем параллельные загрузки:**
+**Раcкомментируем параллельные загрузки и цветной вывод:**
 ```bash
-sed '/ParallelDownloads =/s/^#//' -i /etc/pacman.conf
+sed '/ParallelDownloads =/s/^#//' -i /etc/pacman.conf && \
+sed '/Color/s/^#//' -i /etc/pacman.conf
 ```
 
 **Добавляем репозитории которые Вам нужны:**
@@ -301,21 +302,32 @@ a\\
 #Custom\ repositories\n
 }" -i /etc/pacman.conf
 ```
-ALHP репозиторий (Репозиторий скомпилированный под 86-64-v3 архитектуру)
-Обязательно! Перед добавлением в pacman.conf добавляем ключи и зеркала alhp из AUR:
+CachyOS репозитории (Репозитории скомпилированный под 86-64-v3 архитектуру)
+Обязательно! Перед добавлением в pacman.conf добавляем ключи с их сайта:
 ```bash
-sudo -u vlad paru -Sy alhp-keyring alhp-mirrorlist
+sudo pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com
+sudo pacman-key --lsign-key F3B607488DB35A47
+```
+Устанавливаем необходимые пакеты:
+```bash
+sudo pacman -U 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
+               'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-18-1-any.pkg.tar.zst'    \
+               'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-18-1-any.pkg.tar.zst' \
+               'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-6.1.0-7-x86_64.pkg.tar.zst'
 ```
 
 Уже потом добавляем в pacman.conf:
 ```bash
 sed '/# Default repositories/i\
-\# ALHP\
-\[core-x86-64-v3\]\
-Include = /etc/pacman.d/alhp-mirrorlist\
+\# cachyos repos\
+\[cachyos-v3\]\
+Include = /etc/pacman.d/cachyos-v3-mirrorlist\
 \
-\[extra-x86-64-v3\]\
-Include = /etc/pacman.d/alhp-mirrorlist\
+\[cachyos-extra-v3\]\
+Include = /etc/pacman.d/cachyos-v3-mirrorlist
+\
+\[cachyos\]\
+Include = /etc/pacman.d/cachyos-mirrorlist
 ' -i /etc/pacman.conf
 ```
 
@@ -338,39 +350,9 @@ sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 **Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
 ```bash
 sudo -u vlad paru -S --needed wget man f2fs-tools amd-ucode \
- efibootmgr networkmanager bluez pipewire  pipewire-alsa noto-fonts-cjk ttf-hannom \
+ efibootmgr networkmanager bluez pipewire noto-fonts-cjk ttf-hannom \
  wl-clipboard
 ```
-#### Установка HOOK для микроядра:
-**Если папка не создалась, то создать:**
-```bash
-mkdir /etc/pacman.d/hooks
-```
-**Hook для для раннего обновления микрокода в mkinitcpio:**
-```bash
-cat << _EOF_ > /etc/pacman.d/hooks/ucode.hook
-[Trigger]
-Operation=Install
-Operation=Upgrade
-Operation=Remove
-Type=Package
-# Change to appropriate microcode package
-Target=amd-ucode
-# Change the linux part above and in the Exec line if a different kernel is used
-Target=linux*
-
-[Action]
-Description=Update Microcode module in initcpio
-Depends=mkinitcpio
-Depends=sbctl
-When=PostTransaction
-NeedsTargets
-Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux*) exit 0; esac; done; /usr/bin/mkinitcpio -P; /usr/bin/sbctl sign-all'
-_EOF_
-```
->[!Warning]
->Позднее обновление микрокода, начиная с ядра 5.19 стало небезопасным и по умолчанию оно отключено. Поэтому часть про позднее обновление я удалил.
->(Написал, чтобы не забыть и опять не выписать из переведённого вики)
 ## Первоначальная настройка:
 ### Включение и настройка сети и bluetooth:
 >[!NOTE]
@@ -447,6 +429,12 @@ cat << _EOF_ > /etc/kernel/cmdline
 options page_alloc.shuffle=1 root=$ROOT rootflags=atgc resume=$SWAP rw
 _EOF_
 ```
+**Добавим опции для fallback (В итоге, он как запасной имеет минимальные для загрузки параметры, например будет в дальнейшем без plymouth параметров):**
+```bash
+cat << _EOF_ > /etc/kernel/cmdline-base
+options page_alloc.shuffle=1 root=$ROOT rootflags=atgc rw
+_EOF_
+```
 >[!NOTE]
 >**page_alloc.shuffle=1** - Этот параметр рандомизирует свободные списки
 > распределителя страниц. Улучшает производительность при работе с ОЗУ с очень быстрыми накопителями (NVMe, Optane). Подробнее [тут](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e900a918b0984ec8f2eb150b8477a47b75d17692).
@@ -459,20 +447,17 @@ _EOF_
 >
 >**rw** - разрешение на чтение запись раздела
 
-**Добавим опции для вспомогательного ядра (В итоге, он как запасной имеет минимальные для загрузки параметры, например будет в дальнейшем без plymouth параметров):**
-```bash
-cat << _EOF_ > /etc/kernel/cmdline-base
-options page_alloc.shuffle=1 root=$ROOT rootflags=atgc resume=$SWAP rw
-_EOF_
-```
+> [!NOTE]
+> Раньше был параметр `resume=$SWAP` для пробуждения из гибернизации, но компоненты systemd научились работать без этого указателя.
+> 
+> Если стоит busybox, необходимо вернуть этот параметр.
 
 **Добавляем в переменные нужные ядра:**
 ```bash
-export MAIN_KERNEL=linux \
-SECOND_KERNEL=linux-lts
+export MAIN_KERNEL=linux-cachyos-sched-ext
 ```
 
-**Добавляем пресет для главного:**
+**Добавляем пресеты для разных UKI:**
 ```bash
 cat << _EOF_ > /etc/mkinitcpio.d/$MAIN_KERNEL.preset
 # mkinitcpio preset file for the '$MAIN_KERNEL' package
@@ -490,38 +475,21 @@ default_options="--cmdline /etc/kernel/cmdline"
 #fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
 #fallback_image="/boot/initramfs-$MAIN_KERNEL-fallback.img"
 fallback_uki="/efi/EFI/Linux/arch-$MAIN_KERNEL-fallback.efi"
-fallback_options="-S autodetect"
-_EOF_
-```
-**Добавляем пресет для второго:**
-```bash
-cat << _EOF_ > /etc/mkinitcpio.d/$SECOND_KERNEL.preset
-# mkinitcpio preset file for the '$SECOND_KERNEL' package
-
-ALL_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
-ALL_kver="/boot/vmlinuz-$SECOND_KERNEL"
-
-PRESETS=('default' 'fallback')
-
-#default_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
-#default_image="/boot/initramfs-$SECOND_KERNEL.img"
-default_uki="/efi/EFI/Linux/arch-$SECOND_KERNEL.efi"
-default_options="--cmdline /etc/kernel/cmdline-base"
-
-#fallback_config="/etc/mkinitcpio.conf.d/mkinitcpio.conf"
-#fallback_image="/boot/initramfs-$SECOND_KERNEL-fallback.img"
-fallback_uki="/efi/EFI/Linux/arch-$SECOND_KERNEL-fallback.efi"
-fallback_options="-S autodetect"
+fallback_options="--cmdline /etc/kernel/cmdline-base"
 _EOF_
 ```
 
 Перед установкой, возможно, захочется не компилировать некоторые ядра, а поставить нужный репозиторий:
-[[Репозитории ядер#Linux-mainline]]
-[[Репозитории ядер#Linux-lqx]]
 
-**Устанавливаем сами ядра :**
+[Linux-mainline](/Ядра/Репозитории%20ядер.md#Linux-mainline)
+
+[Linux-lqx](/Ядра/Репозитории%20ядер.md#Linux-lqx)
+
+[Linux-cachyos](/Ядра/Репозитории%20ядер.md#Linux-cachyos)
+
+**Устанавливаем ядро и нужные компоненты:**
 ```bash
-sudo -u vlad paru -S --needed $MAIN_KERNEL  $MAIN_KERNEL-headers $SECOND_KERNEL $SECOND_KERNEL-headers mkinitcpio-firmware
+sudo -u vlad paru -S --needed $MAIN_KERNEL  $MAIN_KERNEL-headers mkinitcpio-firmware
 ```
 
 > [!NOTE]
@@ -533,9 +501,7 @@ sudo -u vlad paru -S --needed $MAIN_KERNEL  $MAIN_KERNEL-headers $SECOND_KERNEL 
 **Подписываем linux efi приложения с зашитыми ядрами, модулями, конфигами и т.п.:**
 ```bash
 sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL.efi && \
-sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-fallback.efi && \
-sbctl sign -s /efi/EFI/Linux/arch-$SECOND_KERNEL.efi && \
-sbctl sign -s /efi/EFI/Linux/arch-$SECOND_KERNEL-fallback.efi
+sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-fallback.efi
 ```
 > [!NOTE]
 > sbctl создаёт после этого hook, который будет постоянно их подписывать)
