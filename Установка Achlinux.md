@@ -902,6 +902,13 @@ sudo mkinitcpio -P ; sudo sbctl sign-all
 ```bash
 sudo bash -c "echo 'vm.swappiness=10'>> /etc/sysctl.d/99-sysctl.conf"
 ```
+
+## Установка и запуск планировщика, если ядро с sched-ext
+```bash
+paru-Sy scx-scheds
+sudo systemctl enable --now scx
+```
+
 ## Переменные для wayland
 
 > [!NOTE]
