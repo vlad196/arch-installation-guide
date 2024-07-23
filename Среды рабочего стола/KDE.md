@@ -44,7 +44,6 @@ After=plymouth-quit.service rc-local.service plymouth-start.service systemd-user
 OnFailure=plymouth-quit.service
 
 [Service]
-ExecStartPre=-/usr/bin/plymouth deactivate
 ExecStartPost=-/usr/bin/sleep 30
 ExecStartPost=-/usr/bin/plymouth quit --retain-splash
 _EOF_
