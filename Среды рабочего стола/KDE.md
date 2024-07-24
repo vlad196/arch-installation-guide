@@ -1,21 +1,10 @@
-### Добавление своего стека репозиториев:
-
-beta-kde (Репозиторий с beta версией KDE. Когда нет теста, не имеет смысла ставить)
+### Установка:
 ```bash
-sed '/# Default repositories/i\
-\# Beta-kde\
-\[kde-unstable\]\
-\Include = /etc/pacman.d/mirrorlist\
-' -i /etc/pacman.conf
-```
-
-**Установка:**
-```bash
-sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta ufw qt6-virtualkeyboard power-profiles-daemon kmail kio5-extras kdoctools5 flatpak-kcm plymouth-kcm
+sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta power-profiles-daemon kde-pim-meta kde-cdemu-manager  xdg-desktop-portal-gtk
 ```
 
 ```bash
-sudo -u vlad paru -Sy cracklib galera judy perl-dbd-mariadb python-mysqlclient python-libevdev python-pyudev gtk3 sshfs kplotting python-gobject kdepim-addons kleopatra kdepim-addons languagetool python-lsp-server unrar p7zip lzop lrzip arj dosfstools exfat-utils fatresize nilfs-utils aspell hspell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools  xdg-desktop-portal-gtk kdepim-addons kde-cdemu-manager
+sudo -u vlad paru -S --asdep flatpak-kcm plymouth-kcm cracklib galera judy perl-dbd-mariadb python-mysqlclient python-libevdev python-pyudev gtk3 sshfs kplotting python-gobject kdepim-addons kleopatra kdepim-addons languagetool python-lsp-server unrar p7zip lzop lrzip arj dosfstools exfat-utils fatresize nilfs-utils aspell hspell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools
 ```
 >[!Note]
 >Если ставиться plasma 5, необходим ещё один пакет для wayland plasma-wayland-session.
