@@ -1,13 +1,12 @@
 ### Установка:
 ```bash
-sudo -u vlad paru -Sy --needed plasma-meta sddm kde-graphics-meta kde-system-meta kde-utilities-meta kde-multimedia-meta kde-network-meta power-profiles-daemon kde-pim-meta kde-cdemu-manager  xdg-desktop-portal-gtk
+sudo -u vlad paru -Sy --needed plasma-meta kde-{graphics,system,utilities,multimedia,network,pim,sdk}-meta sddm power-profiles-daemon kde-cdemu-manager  xdg-desktop-portal-gtk
 ```
 
 ```bash
-sudo -u vlad paru -S --asdep flatpak-kcm plymouth-kcm cracklib galera judy perl-dbd-mariadb python-mysqlclient python-libevdev python-pyudev gtk3 sshfs kplotting python-gobject kdepim-addons kleopatra kdepim-addons languagetool python-lsp-server unrar p7zip lzop lrzip arj dosfstools exfat-utils fatresize nilfs-utils aspell hspell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools
+sudo -u vlad paru -S --asdep {flatpak,plymouth}-kcm cracklib galera judy perl-dbd-mariadb python-{mysqlclient,libevdev,pyudev,gobject,lsp-server}  gtk3 sshfs kplotting kleopatra languagetool unrar p7zip lzop lrzip arj dosfstools fatresize {exfat,nilfs}-utils {a,h}spell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools
 ```
 >[!Note]
->Если ставиться plasma 5, необходим ещё один пакет для wayland plasma-wayland-session.
 >Для роли phonon backend всегда выбираем VLC, т.к. на сегодня нормально [только он и поддерживается](https://community.kde.org/Distributions/Packaging_Recommendations#Non-Plasma_packages).
 >При выборе tesdate нужно быть внимательней! Наш регион 96
 
@@ -42,10 +41,13 @@ _EOF_
 
 # KDE настройка после перезагрузки
 ### Настройка Dolphin:
-**Добавляем thumbnails для файлов:**
+**Добавляем недостающие опциональные thumbnails для файлов:**
 ```bash
-paru -Sy --asdeps --needed ffmpegthumbs kde-cli-tools kdegraphics-thumbnailers kio-admin purpose libheif qt6-imageformats resvg kdesdk-thumbnailers raw-thumbnailer taglib kde-thumbnailer-apk
-
+paru -S --asdeps --needed libheif taglib
+```
+**Добавляем дополнительные thumbnails для файлов:**
+```bash
+paru -S --needed libheif resvg raw-thumbnailer kde-thumbnailer-apk
 ```
 
 ### Автозагрузка:
