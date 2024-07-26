@@ -239,8 +239,8 @@ passwd vlad
 **Для мнимой производительности для нашего пользователя переназначаем флаги GCC:**
 ```bash
 sudo -u vlad cat << _EOF_ > /home/vlad/.makepkg.conf
-CFLAGS="-march=native -mtune=native -O2 -pipe -fno-plt -fexceptions \
-      -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \
+CFLAGS="-march=native -mtune=native -O2 -pipe -fno-plt -fexceptions \\
+      -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \\
       -fstack-clash-protection -fcf-protection"
 CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
 RUSTFLAGS="-C opt-level=3 -C target-cpu=native -C link-arg=-z -C link-arg=pack-relative-relocs"
@@ -255,7 +255,7 @@ _EOF_
 Отличительной особенностью PARU является одновременно и то что он написан на Rust и то что он позволяет достаточно удобно работать с PKGBUILD 
 **Скачиваем PARU и входим в его каталог:**
 ```bash
-sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru &&
+sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru
 ```
 **Создаём пакет, устанавливаем его и переходим обратно в корень**
 ```bash
@@ -265,7 +265,7 @@ sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru &&
 **Добавляем возможность редактирования в paru:**
 ```bash
 sed '/\[bin\]/s/^#//' -i /etc/paru.conf && \
-sed '/FileManager/s/^#//' -i /etc/paru.conf
+sed '/FileManager/s/^#//' -i /etc/paru.conf && \
 sed '/FileManager/s/vifm$/nvim/' -i /etc/paru.conf
 ```
 **Заставляем paru держать таймер истечения действия пароля до полного выполнения работы:**
@@ -308,12 +308,12 @@ a\\
 CachyOS репозитории (Репозитории скомпилированный под 86-64-v3 архитектуру)
 Обязательно! Перед добавлением в pacman.conf добавляем ключи с их сайта:
 ```bash
-sudo pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com
-sudo pacman-key --lsign-key F3B607488DB35A47
+pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com && \
+pacman-key --lsign-key F3B607488DB35A47
 ```
 Устанавливаем необходимые пакеты:
 ```bash
-sudo pacman -U 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
+pacman -U 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
                'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-18-1-any.pkg.tar.zst'    \
                'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-18-1-any.pkg.tar.zst' \
                'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-6.1.0-7-x86_64.pkg.tar.zst'
@@ -327,10 +327,10 @@ sed '/# Default repositories/i\
 Include = /etc/pacman.d/cachyos-v3-mirrorlist\
 \
 \[cachyos-extra-v3\]\
-Include = /etc/pacman.d/cachyos-v3-mirrorlist
+Include = /etc/pacman.d/cachyos-v3-mirrorlist\
 \
 \[cachyos\]\
-Include = /etc/pacman.d/cachyos-mirrorlist
+Include = /etc/pacman.d/cachyos-mirrorlist\
 ' -i /etc/pacman.conf
 ```
 
@@ -353,8 +353,8 @@ sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 **Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
 ```bash
 sudo -u vlad paru -S --needed wget man f2fs-tools amd-ucode \
- efibootmgr networkmanager bluez pipewire noto-fonts-cjk ttf-hannom \
- wl-clipboard
+efibootmgr networkmanager bluez pipewire noto-fonts-cjk ttf-hannom \
+wl-clipboard terminus-font xdg-utils mailcap
 ```
 ## Первоначальная настройка:
 ### Включение и настройка сети и bluetooth:
@@ -490,6 +490,12 @@ _EOF_
 
 [Linux-cachyos](/Ядра/Репозитории%20ядер.md#Linux-cachyos)
 
+**Создать директории в efi, если их нет**
+```bash
+mkdir -p /efi/EFI && \
+mkdir -p /efi/EFI/LINUX
+```
+
 **Устанавливаем ядро и нужные компоненты:**
 ```bash
 sudo -u vlad paru -S --needed $MAIN_KERNEL  $MAIN_KERNEL-headers mkinitcpio-firmware
@@ -528,7 +534,7 @@ _EOF_
 ### [Запись UKI в UEFI](/Загрузчики/Запись-UKI-в-UEFI.md)
 ## Пересобираем ядра уже в EFI:
 ```bash
-mkinitcpio -P ; sbctl sign-all
+mkinitcpio -P
 ```
 ### Подпись файлов efi созданными ключами:
 **Подписываем Windows файлы:**
@@ -679,7 +685,7 @@ sed -i -e 's/$/ lsm=landlock,lockdown,yama,integrity,apparmor,bpf audit=1 audit_
 
 **Обновляем и подписываем ядро:**
 ```bash
-mkinitcpio -P ; sbctl sign-all
+mkinitcpio -P
 ```
 #### Для работы уведомлений от Apparmor нужно:
 **Устанавливаем пакеты:**
@@ -700,11 +706,11 @@ sed '/log_group = root/s/root/audit/' -i /etc/audit/auditd.conf
 ```
 **Создаём папку автостарт, если нет:**
 ```bash
-sudo -u vlad mkdir -p home/vlad/.config/autostart
+sudo -u vlad mkdir -p /home/vlad/.config/autostart
 ```
 **Добавляем .desktop файл для уведомления:**
 ```bash
-sudo -u vlad bash -c 'cat << _EOF_ >> home/vlad/.config/autostart/apparmor-notify.desktop
+sudo -u vlad bash -c 'cat << _EOF_ >> /home/vlad/.config/autostart/apparmor-notify.desktop
 [Desktop Entry]
 Type=Application
 Name=AppArmor Notify
@@ -745,7 +751,7 @@ sudo -u vlad paru -S --needed xdg-user-dirs
 
 **Указываем папки для типовых каталогов:**
 ```bash
-sudo -u vlad mkdir -p home/vlad/.config && \
+sudo -u vlad mkdir -p /home/vlad/.config && \
 sudo -u vlad cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
 # This file is written by xdg-user-dirs-update
 # If you want to change or add directories, just edit the line you're
@@ -808,7 +814,7 @@ systemctl enable sshd.service
 Нужно в конце сгенерировать mkinitcpio и подписать ядра:
 
 ```bash
-mkinitcpio -P ; sbctl sign-all
+mkinitcpio -P
 ```
 **Выходим из chroot:**
 ```bash
@@ -897,7 +903,7 @@ sudo cryptsetup luksDump /dev/nvme0n1p3
 ```
 **Обновляем ядра и подписываем их:**
 ```bash
-sudo mkinitcpio -P ; sudo sbctl sign-all
+sudo mkinitcpio -P
 ```
 
 ## Настойка подкачки:
@@ -908,7 +914,7 @@ sudo bash -c "echo 'vm.swappiness=10'>> /etc/sysctl.d/99-sysctl.conf"
 
 ## Установка и запуск планировщика, если ядро с sched-ext
 ```bash
-paru-Sy scx-scheds
+paru -Sy scx-scheds && \
 sudo systemctl enable --now scx
 ```
 
