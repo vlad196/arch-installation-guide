@@ -37,7 +37,7 @@ parted /dev/nvme0n1 mklabel gpt
 **Создаём 2 раздела:**
 ```bash
 parted /dev/nvme0n1 mkpart '"EFI system partition"' fat32 2048s 2GiB && \
-parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 16GiB && \
+parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 26GiB && \
 parted /dev/nvme0n1 mkpart '"system partition"' 16GiB 100%
 ```
 >[!NOTE]
