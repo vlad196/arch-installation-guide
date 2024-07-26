@@ -238,7 +238,7 @@ passwd vlad
 ## Настройка компилятора и пакетного менеджера:
 **Для мнимой производительности для нашего пользователя переназначаем флаги GCC:**
 ```bash
-cat << _EOF_ > /home/vlad/.makepkg.conf
+sudo -u vlad cat << _EOF_ > /home/vlad/.makepkg.conf
 CFLAGS="-march=native -mtune=native -O2 -pipe -fno-plt -fexceptions \
       -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \
       -fstack-clash-protection -fcf-protection"
@@ -255,7 +255,7 @@ _EOF_
 Отличительной особенностью PARU является одновременно и то что он написан на Rust и то что он позволяет достаточно удобно работать с PKGBUILD 
 **Скачиваем PARU и входим в его каталог:**
 ```bash
-sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru && \
+sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru &&
 ```
 **Создаём пакет, устанавливаем его и переходим обратно в корень**
 ```bash
