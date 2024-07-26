@@ -236,13 +236,16 @@ passwd vlad
 ```
 
 ## Настройка компилятора и пакетного менеджера:
-**Для мнимой производительности корректируем флаги GCC:**
+**Для мнимой производительности для нашего пользователя переназначаем флаги GCC:**
 ```bash
-sed -i 's/-march=x86-64/-march=native/' /etc/makepkg.conf && \
-sed -i 's/-mtune=generic/-mtune=native/' /etc/makepkg.conf && \
-sed -i 's/#RUSTFLAGS="-C opt-level=2"/RUSTFLAGS="-C opt-level=3"/' /etc/makepkg.conf && \
-sed -i 's/#MAKEFLAGS="-j2"/MAKEFLAGS="-j$(nproc) -l$(nproc)"/' /etc/makepkg.conf && \
-sed -i 's/\!lto/lto/g' /etc/makepkg.conf
+cat << _EOF_ > /home/vlad/.makepkg.conf
+CFLAGS="-march=native -mtune=native -O2 -pipe -fno-plt -fexceptions \
+      -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \
+      -fstack-clash-protection -fcf-protection"
+CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
+RUSTFLAGS="-C opt-level=3 -C target-cpu=native -C link-arg=-z -C link-arg=pack-relative-relocs"
+MAKEFLAGS="-j$(nproc) -l$(nproc)"
+_EOF_
 ```
 >[!NOTE]
 >Все эти флаги взяты отсюда:
