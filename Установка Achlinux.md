@@ -38,7 +38,7 @@ parted /dev/nvme0n1 mklabel gpt
 ```bash
 parted /dev/nvme0n1 mkpart '"EFI system partition"' fat32 2048s 2GiB && \
 parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 26GiB && \
-parted /dev/nvme0n1 mkpart '"system partition"' 16GiB 100%
+parted /dev/nvme0n1 mkpart '"system partition"' 26GiB 100%
 ```
 >[!NOTE]
 >Очень важно, следите за размером секторов на диске! От этого зависит скорость доступа к диску. Если при создании раздела не соблюсти кратность сектора, то контроллер будет чаще обращаться к ячейкам, а значит увеличится и время доступа к данным. В данном случае, минимальный разрешённый сектор у меня 2048s(секторов).
