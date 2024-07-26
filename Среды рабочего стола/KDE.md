@@ -4,7 +4,7 @@ sudo -u vlad paru -Sy --needed plasma-meta kde-{graphics,system,utilities,multim
 ```
 
 ```bash
-sudo -u vlad paru -S --asdep {flatpak,plymouth}-kcm cracklib galera judy perl-dbd-mariadb python-{mysqlclient,libevdev,pyudev,gobject,lsp-server}  gtk3 sshfs kplotting kleopatra languagetool unrar p7zip lzop lrzip arj dosfstools fatresize {exfat,nilfs}-utils {a,h}spell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools
+sudo -u vlad paru -S --asdep --needed {flatpak,plymouth}-kcm cracklib galera judy perl-dbd-mariadb python-{mysqlclient,libevdev,pyudev,yaml,gobject,lsp-server}  gtk3 gtk4 sshfs kplotting kleopatra languagetool unrar p7zip lzop lrzip arj dosfstools fatresize {exfat,nilfs}-utils {a,h}spell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools freetds bluez-obex libwmf libopenraw webp-pixbuf-loader
 ```
 >[!Note]
 >Для роли phonon backend всегда выбираем VLC, т.к. на сегодня нормально [только он и поддерживается](https://community.kde.org/Distributions/Packaging_Recommendations#Non-Plasma_packages).
