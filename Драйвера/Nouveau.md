@@ -14,6 +14,10 @@ sudo -u vlad paru -S --needed lib32-vulkan-nouveau vulkan-nouveau
 ```bash
 sudo -u vlad paru -S --asdep --needed vulkan-mesa-layers lib32-vulkan-mesa-layers 
 ```
+ **Установка Open-source VDPAU drivers:**
+```bash
+sudo -u vlad paru -S --needed mesa-vdpau lib32-mesa-vdpau
+```
 
 #### Power Managemenet:
 Для видеокарт Ampere и Turing можно включить поддержку управления питанием.
