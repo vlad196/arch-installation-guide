@@ -353,8 +353,9 @@ sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 **Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
 ```bash
 sudo -u vlad paru -S --needed wget man f2fs-tools amd-ucode \
-efibootmgr networkmanager bluez pipewire noto-fonts-cjk ttf-hannom \
-wl-clipboard terminus-font xdg-utils mailcap
+efibootmgr networkmanager bluez pipewire pipewire-pulse pipewire-jack \
+pipewire-v4l2 lib32-pipewire lib32-pipewire-jack lib32-pipewire-v4l2 \
+noto-fonts-cjk ttf-hannom wl-clipboard terminus-font xdg-utils mailcap
 ```
 ## Первоначальная настройка:
 ### Включение и настройка сети и bluetooth:
