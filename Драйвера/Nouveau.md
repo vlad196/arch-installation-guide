@@ -4,21 +4,8 @@
 Nouveau в очень активной разработке, поэтому чем более поздние пакеты, тем лучше его работа
 В частности необходимы как можно поздние пакеты linux (удобен linux-mainline. Linux-git избыточно часто собирается) и mesa
 #### Пакеты:
-Чтобы не собирать  vulkan-nouveau-git, добавляем репозиторий chaotic-aur
-**добавляем ключей для chaotic-aur:**
-```bash
-pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com && \
-pacman-key --lsign-key 3056513887B78AEB && \
-pacman -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
-```
-**Добавление репозиториев chaotic-aur:**
-```bash
-sed '/# Default repositories/i\
-\# Chaotic-aur\
-\[chaotic-aur]\
-\Include = /etc/pacman.d/chaotic-mirrorlist
-' -i /etc/pacman.conf
-```
+Чтобы не собирать  vulkan-nouveau-git, добавляем репозиторий chaotic-aur или cachyos
+
 >[!Warning]
 >Перед установкой закомментировать mesa-git репозиторий, если он есть
 ##### **Mesa:**
@@ -26,23 +13,6 @@ sed '/# Default repositories/i\
 ```bash
 sudo -u vlad paru -Sy --needed lib32-vulkan-nouveau-git vulkan-nouveau-git
 ```
----
-**В будущем будет:**
-**Добавление репозиториев mesa-git (Репозиторий с последними скомпилированными бинарниками mesa)**
-```bash
-sed '/# Default repositories/i\
-\# Mesa-git\
-\[mesa-git\]\
-\SigLevel = Never\
-\Server = https://pkgbuild.com/~lcarlier/\$repo\/\$arch\
-' -i /etc/pacman.conf
-```
-
-**Установка mesa-git:**
-```bash
-sudo -u vlad paru -Sy mesa-git lib32-mesa-git
-```
----
 #### Power Managemenet:
 Для видеокарт Ampere и Turing можно включить поддержку управления питанием.
 
@@ -52,7 +22,7 @@ TODO: перепроверить. Похоже, что сейчас не раб�
 
 ```bash
 cat << _EOF_ > /etc/modprobe.d/nouveau-power-management.conf
-options nouveau config NvGspRm=1
+options nouveau config=NvGspRm=1
 _EOF_
 ```
 
