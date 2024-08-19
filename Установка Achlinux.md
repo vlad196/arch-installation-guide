@@ -726,7 +726,7 @@ _EOF_'
 ```bash
 systemctl enable auditd.service
 ```
-%% TODO проверить и удалить, если в нём нет необходимости %%
+
 **Создаём файл syslog, если его нет:**
 ```
 touch /var/log/syslog
@@ -803,6 +803,7 @@ sudo -u vlad paru -S --needed openssh
 %%
 TODO: надо сюда добавить настройки по безопасности
 %%
+
 **Включаем юнит:**
 ```bash
 systemctl enable sshd.service
@@ -935,6 +936,7 @@ MOZ_DBUS_REMOTE=1 # For shared clipboard with Xwayland apps
 WLR_NO_HARDWARE_CURSORS=1 
 _JAVA_AWT_WM_NONREPARENTING=1
 ELECTRON_OZONE_PLATFORM_HINT=auto
+ZINK_DEBUG=ioopt #https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/28580
 NOUVEAU_USE_ZINK=1
 _EOF_
 ```
@@ -954,7 +956,6 @@ paru -S --needed ufw
 ```bash
 sudo ufw default deny && \
 sudo ufw allow from 192.168.0.0/24 && \
-sudo ufw allow Deluge && \
 sudo ufw limit ssh
 ```
 **Включение ufw:**
@@ -1031,6 +1032,15 @@ _EOF_'
 ### [KDE](/Среды%20рабочего%20стола/KDE.md#kde-настройка-после-перезагрузки)
 
 ### [Gnome](/Среды%20рабочего%20стола/Gnome.md#Gnome-настройка-после-перезагрузки)
+
+### Ру словари для aspell и huspell checkers:
+
+```bash
+sudo pacman -S aspell-ru hunspell-ru
+```
+
+>[!NOTE}
+>Это словари, которые необходимы системе для подчёркивания неправильных слов
 
 ## Далее будут личные настройки программы, которые можно установить уже после:
 
