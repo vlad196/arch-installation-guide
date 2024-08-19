@@ -2,7 +2,7 @@
 
 **Копируем нами используемый cmdline для основного ядра:**
 ```bash
-cp etc/kernel/cmdline /etc/kernel/cmdline-nvidia
+cp /etc/kernel/cmdline /etc/kernel/cmdline-nvidia
 ```
 **В основном cmdline добавляем module_blacklist для модулей nvidia, чтобы не грузились:**
 ```bash
@@ -88,6 +88,19 @@ sudo -u vlad paru -Sy --needed nvidia-dkms lib32-nvidia-utils mesa lib32-mesa
 ```bash
 ln -s /dev/null /etc/modprobe.d/nvidia-utils.conf
 ```
+**Убираем nvidia-no-freeze-session в /dev/null, который появляется вместе с пакетом nvidia-utils:**
+```bash
+mkdir -p /etc/systemd/system/systemd-homed.service.d && \
+ln -s /dev/null /etc/systemd/system/systemd-homed.service.d/10-nvidia-no-freeze-session.conf && \
+mkdir -p /etc/systemd/system/systemd-suspend.service.d && \
+ln -s /dev/null /etc/systemd/system/systemd-hibernate.service.d/10-nvidia-no-freeze-session.conf && \
+mkdir -p /etc/systemd/system/systemd-suspend-then-hibernate.service.d && \
+ln -s /dev/null /etc/systemd/system/systemd-suspend-then-hibernate.service.d/10-nvidia-no-freeze-session.conf && \
+mkdir -p /etc/systemd/system/systemd-hibernate.service.d && \
+ln -s /dev/null /etc/systemd/system/systemd-hibernate.service.d/10-nvidia-no-freeze-session.conf && \
+mkdir -p /etc/systemd/system/systemd-hybrid-sleep.service.d && \
+ln -s /dev/null /etc/systemd/system/systemd-hybrid-sleep.service.d/10-nvidia-no-freeze-session.conf
+```
 
 ### NVIDIA TWEAKS
 Множественные исправления, большую часть которых взял отсюда (https://github.com/ventureoo/nvidia-tweaks)
@@ -95,10 +108,10 @@ ln -s /dev/null /etc/modprobe.d/nvidia-utils.conf
 - потеря памяти в спящем режиме nvidia-beta-dkms
 - добавляет поддержку PAT
 - "потенциально" ускоряет производительность за счёт безопасности (Если выберите безопасность, то закомментируйте NVreg_InitializeSystemMemoryAllocations)
-и т.п. 
+и т.п.
 Всё расписано в самом конфиге, либо же, можно посмотреть на самом гитхабе выше.
 
-Закомментируемы некоторые опции, т.к. лично у меня они либо не нужны, либо не поддерживаются, либо вовсе влекут за собой проблемы. 
+Закомментируемы некоторые опции, т.к. лично у меня они либо не нужны, либо не поддерживаются, либо вовсе влекут за собой проблемы.
 Закомментированы следующие:
 - NVreg_EnableResizableBar т.к. моё устройство не поддерживает resizable bar
 - NVreg_TemporaryFilePath т.к. без него ждущий режим работает хорошо, если есть режим s2idle, а сама опция подразумевает лишнее использование циклов записи для устройства хранения
@@ -191,10 +204,11 @@ sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia-fallback.efi
 ```
 **Добавляем юнит для маскирования юнитов от nvidia, когда nouveau запущен**
 ```bash
+mkdir -p /etc/systemd/system/nvidia-switch.service.d && \
 cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/mask-nvidia.service
 [Unit]
 Description=Mask NVIDIA services for Nouveau
-ConditionPathIsDirectory=!/proc/driver/nvidia 
+ConditionPathIsDirectory=!/proc/driver/nvidia
 ConditionPathExists=!/etc/systemd/system/nvidia-suspend.service
 ConditionPathExists=!/etc/systemd/system/nvidia-hibernate.service
 ConditionPathExists=!/etc/systemd/system/nvidia-resume.service
@@ -205,7 +219,6 @@ ExecStart=/usr/bin/systemctl mask nvidia-suspend.service nvidia-hibernate.servic
 
 [Install]
 WantedBy=multi-user.target
-
 _EOF_
 ```
 
