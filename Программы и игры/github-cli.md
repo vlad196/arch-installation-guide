@@ -16,9 +16,7 @@ gh auth login
 - no generate SSH (Если уже есть)
 - Login with a web browser
 
-## Смотри наши проекты:
 
-```bash
 gh repo list
 ```
 
@@ -33,4 +31,10 @@ mkdir -p ~/repositories
 
 ```bash
 gh repo clone owner/repo
+```
+
+## Обновить репозиторий:
+
+```bash
+gh repo sync
 ```
