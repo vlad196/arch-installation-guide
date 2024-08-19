@@ -36,5 +36,7 @@ gh repo clone owner/repo
 ## Обновить репозиторий:
 
 ```bash
-gh repo sync
+git add.
+git commit -am 'update'
+git push
 ```
