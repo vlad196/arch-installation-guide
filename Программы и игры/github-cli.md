@@ -40,3 +40,11 @@ git add.
 git commit -am 'update'
 git push
 ```
+
+## Сделать pull request
+
+Если скачал свой форк, по умолчанию все PR и т.п. , будет обпащено оригиналу
+
+```bash
+gh pr create
+```
