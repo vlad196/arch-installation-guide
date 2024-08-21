@@ -1,4 +1,11 @@
 ## NVIDIA:
+>[!NOTE]
+>Указываем актуальное ядро, если ещё не указали:
+>```bash
+>export MAIN_KERNEL=linux-cachyos-sched-ext
+>```
+
+
 
 **Копируем нами используемый cmdline для основного ядра:**
 ```bash
@@ -47,42 +54,18 @@ _EOF_
 ```bash
 sed -e 's/\(MODULES=(\)/\1nvidia nvidia_modeset nvidia_uvm nvidia_drm/' -i /etc/mkinitcpio.conf.d/mkinitcpio-nvidia.conf
 ```
-#### Установка HOOK для драйверов:
-**Hook для Пересборки модулей ядра с драйверами nvidia при обновлении ядра**
-```bash
-cat << _EOF_ > /etc/pacman.d/hooks/nvidia.hook
-[Trigger]
-Operation=Install
-Operation=Upgrade
-Operation=Remove
-Type=Package
-Target=nvidia-dkms*
-
-[Action]
-Description=Update NVIDIA module in initcpio
-Depends=mkinitcpio
-Depends=sbctl
-When=PostTransaction
-NeedsTargets
-Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux*) exit 0; esac; done; /usr/bin/mkinitcpio -P; /usr/bin/sbctl sign-all'
-_EOF_
-```
->[!NOTE]
->К сожалению, с AUR скриптами хуки не работают. Заработает если будет обычный пакет nvidia-dkms
-
-**Добавление репозиториев mesa-git (Репозиторий с последними скомилированными бинарниками mesa)**
-```bash
-sed '/# Default repositories/i\
-\[mesa-git\]\
-\Server = https://pkgbuild.com/~lcarlier/\$repo\/\$arch\
-' -i /etc/pacman.conf
-```
 **Устанавливаем пакеты:**
 ```bash
-sudo -u vlad paru -Sy --needed nvidia-dkms lib32-nvidia-utils mesa lib32-mesa
+pacman -Sy --needed nvidia-dkms lib32-nvidia-utils
 ```
 >[!Note]
 >nvidia-beta-dkms может ругаться на зависимости, если они тоже были явно установлены, поэтому вместо nvidia-beta-dkms nvidia-utils-beta и nvidia-settings-beta можно просто nvidia-beta-dkms
+
+>[!Note]
+>Если стоит cachyos репозиторий и его ядро, ставим одноимённый бинарник драйвера:
+>```bash
+>pacman -Sy ${MAIN_KERNEL}-nvidia lib32-nvidia-utils
+>```
 
 **Убираем module_blacklist в /dev/null, который появляется вместе с пакетом nvidia-utils:**
 ```bash
@@ -120,16 +103,6 @@ ln -s /dev/null /etc/systemd/system/systemd-hybrid-sleep.service.d/10-nvidia-no-
 
 ```bash
 cat << _EOF_ > /etc/modprobe.d/nvidia-tweaks.conf
-options nvidia NVreg_PreserveVideoMemoryAllocations=1
-#
-# Allow to preserve memory allocations (Required to properly wake up from sleep mode). Not working with PRIME.
-options nvidia NVreg_EnableS0ixPowerManagement=1
-# An option for saving video memory. Uses s2idle power saving mode.
-
-options nvidia NVreg_TemporaryFilePath=/var/tmp
-#
-# An alternative option for saving video memory. Turn on if s2idle energy saving mode is not working.
-
 options nvidia NVreg_UsePageAttributeTable=1
 #
 # NVreg_UsePageAttributeTable=1 (Default 0) - Activating the better
@@ -240,6 +213,30 @@ ExecStart=/usr/bin/systemctl unmask nvidia-suspend.service nvidia-hibernate.serv
 WantedBy=multi-user.target
 _EOF_
 ```
+TODO: проверить, актуально ли
+#### Установка HOOK для драйверов:
+**Hook для Пересборки модулей ядра с драйверами nvidia при обновлении ядра**
+```bash
+cat << _EOF_ > /etc/pacman.d/hooks/nvidia.hook
+[Trigger]
+Operation=Install
+Operation=Upgrade
+Operation=Remove
+Type=Package
+Target=nvidia-dkms*
+
+[Action]
+Description=Update NVIDIA module in initcpio
+Depends=mkinitcpio
+Depends=sbctl
+When=PostTransaction
+NeedsTargets
+Exec=/bin/sh -c 'while read -r trg; do case \$trg in linux*) exit 0; esac; done; /usr/bin/mkinitcpio -P; /usr/bin/sbctl sign-all'
+_EOF_
+```
+>[!NOTE]
+>К сожалению, с AUR скриптами хуки не работают. Заработает если будет обычный пакет nvidia-dkms
+
 
 **Активируем их:**
 ```bash
