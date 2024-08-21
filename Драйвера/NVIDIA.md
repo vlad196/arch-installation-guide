@@ -213,6 +213,32 @@ ExecStart=/usr/bin/systemctl unmask nvidia-suspend.service nvidia-hibernate.serv
 WantedBy=multi-user.target
 _EOF_
 ```
+**Добавляем юнит для переназначения GL и mesa от nvidia, когда nouveau запущен**
+```bash
+mkdir -p /etc/systemd/system/nvidia-switch.service.d && \
+cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/environment_nouveau.service
+[Unit]
+Description=Set environment for nouveau
+ConditionPathIsDirectory=/usr/share/glvnd/egl_vendor.d/10_nvidia.json
+ConditionPathExists=/usr/share/vulkan/icd.d/nvidia_icd.json
+
+[Service]
+Type=oneshot
+Environment="__GLX_VENDOR_LIBRARY_NAME=mesa"
+Environment="__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+Environment="VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json"
+Environment="__GLX_VENDOR_LIBRARY_NAME=mesa"
+
+[Install]
+WantedBy=multi-user.target
+_EOF_
+```
+
+**Активируем их:**
+```bash
+systemctl enable mask-nvidia.service unmask-nvidia.service environment_nouveau.service
+```
+
 TODO: проверить, актуально ли
 #### Установка HOOK для драйверов:
 **Hook для Пересборки модулей ядра с драйверами nvidia при обновлении ядра**
@@ -237,8 +263,3 @@ _EOF_
 >[!NOTE]
 >К сожалению, с AUR скриптами хуки не работают. Заработает если будет обычный пакет nvidia-dkms
 
-
-**Активируем их:**
-```bash
-systemctl enable mask-nvidia.service unmask-nvidia.service
-```
