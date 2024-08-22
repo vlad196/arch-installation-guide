@@ -215,6 +215,7 @@ if [[ ! -d /proc/driver/nvidia ]]; then
         export __GLX_VENDOR_LIBRARY_NAME=mesa \\
             __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \\
             VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json
+    fi
 fi
 _EOF_
 ```
