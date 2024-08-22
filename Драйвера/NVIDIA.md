@@ -152,9 +152,6 @@ options nvidia NVreg_EnableGpuFirmware=1
 #for suspend and resume when using GSP firmware. This feature can also work badly on PRIME configurations,
 #so please check dmesg logs for errors if you want to use this.
 
-
-options nvidia_drm modeset=1
-
 options nvidia_drm fbdev=1
 # This options unlock new nvidia framebuffer
 _EOF_
