@@ -76,7 +76,7 @@ ln -s /dev/null /etc/modprobe.d/nvidia-utils.conf
 mkdir -p /etc/systemd/system/systemd-homed.service.d && \
 ln -s /dev/null /etc/systemd/system/systemd-homed.service.d/10-nvidia-no-freeze-session.conf && \
 mkdir -p /etc/systemd/system/systemd-suspend.service.d && \
-ln -s /dev/null /etc/systemd/system/systemd-hibernate.service.d/10-nvidia-no-freeze-session.conf && \
+ln -s /dev/null /etc/systemd/system/systemd-suspend.service.d/10-nvidia-no-freeze-session.conf && \
 mkdir -p /etc/systemd/system/systemd-suspend-then-hibernate.service.d && \
 ln -s /dev/null /etc/systemd/system/systemd-suspend-then-hibernate.service.d/10-nvidia-no-freeze-session.conf && \
 mkdir -p /etc/systemd/system/systemd-hibernate.service.d && \
