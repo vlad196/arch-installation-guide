@@ -88,7 +88,6 @@ ln -s /dev/null /etc/systemd/system/systemd-hybrid-sleep.service.d/10-nvidia-no-
 ### NVIDIA TWEAKS
 Множественные исправления, большую часть которых взял отсюда (https://github.com/ventureoo/nvidia-tweaks)
 Исправляет следующее:
-- потеря памяти в спящем режиме nvidia-beta-dkms
 - добавляет поддержку PAT
 - "потенциально" ускоряет производительность за счёт безопасности (Если выберите безопасность, то закомментируйте NVreg_InitializeSystemMemoryAllocations)
 и т.п.
@@ -97,8 +96,6 @@ ln -s /dev/null /etc/systemd/system/systemd-hybrid-sleep.service.d/10-nvidia-no-
 Закомментируемы некоторые опции, т.к. лично у меня они либо не нужны, либо не поддерживаются, либо вовсе влекут за собой проблемы.
 Закомментированы следующие:
 - NVreg_EnableResizableBar т.к. моё устройство не поддерживает resizable bar
-- NVreg_TemporaryFilePath т.к. без него ждущий режим работает хорошо, если есть режим s2idle, а сама опция подразумевает лишнее использование циклов записи для устройства хранения
-- NVreg_RegistryDwords т.к. вроде как необходим для некоторых ноутбуков для правильного отображения nvidia-settings и он мне не нужен
 **Добавляем в modprobe.d:**
 
 ```bash
