@@ -152,13 +152,6 @@ options nvidia NVreg_EnableGpuFirmware=1
 #for suspend and resume when using GSP firmware. This feature can also work badly on PRIME configurations,
 #so please check dmesg logs for errors if you want to use this.
 
-#blacklist nouveau
-#alias nouveau off
-#
-# Nouveau must be blacklisted here as well beside from the initrd to avoid a
-# delayed loading (for example on Optimus laptops where the Nvidia card is not
-# driving the main display).
-# But they allreay blacklisted nvidia-utils package in /usr/lib/modprobe.d/nvidia-utils.conf
 
 options nvidia_drm modeset=1
 
@@ -177,8 +170,7 @@ sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia-fallback.efi
 ```
 **Добавляем юнит для маскирования юнитов от nvidia, когда nouveau запущен**
 ```bash
-mkdir -p /etc/systemd/system/nvidia-switch.service.d && \
-cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/mask-nvidia.service
+cat << _EOF_ > /etc/systemd/system/mask-nvidia.service
 [Unit]
 Description=Mask NVIDIA services for Nouveau
 ConditionPathIsDirectory=!/proc/driver/nvidia
@@ -197,7 +189,7 @@ _EOF_
 
 **Добавляем юнит для снятия маски юнитов nvidia, если сейчас загружен проприетарный драйвер и до этого они были выключены:**
 ```bash
-cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/unmask-nvidia.service
+cat << _EOF_ > /etc/systemd/system/unmask-nvidia.service
 [Unit]
 Description=Unmask NVIDIA services
 ConditionPathIsDirectory=/proc/driver/nvidia
@@ -213,30 +205,23 @@ ExecStart=/usr/bin/systemctl unmask nvidia-suspend.service nvidia-hibernate.serv
 WantedBy=multi-user.target
 _EOF_
 ```
-**Добавляем юнит для переназначения GL и mesa от nvidia, когда nouveau запущен**
+**Добавляем /etc/profile.d/ для переназначения GL и mesa от nvidia, когда nouveau запущен**
 ```bash
-mkdir -p /etc/systemd/system/nvidia-switch.service.d && \
-cat << _EOF_ > /etc/systemd/system/nvidia-switch.service.d/environment_nouveau.service
-[Unit]
-Description=Set environment for nouveau
-ConditionPathIsDirectory=/usr/share/glvnd/egl_vendor.d/10_nvidia.json
-ConditionPathExists=/usr/share/vulkan/icd.d/nvidia_icd.json
-
-[Service]
-Type=oneshot
-Environment="__GLX_VENDOR_LIBRARY_NAME=mesa"
-Environment="__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json"
-Environment="VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json"
-Environment="__GLX_VENDOR_LIBRARY_NAME=mesa"
-
-[Install]
-WantedBy=multi-user.target
+cat << _EOF_ > /etc/profile.d/nouveau_loaders.sh
+# Check nvidia driver load
+if [[ ! -d /proc/driver/nvidia ]]; then
+    # Check nvidia loaders exist
+    if [[ -f /usr/share/glvnd/egl_vendor.d/10_nvidia.json || -f /usr/share/vulkan/icd.d/nvidia_icd.json ]]; then
+        export __GLX_VENDOR_LIBRARY_NAME=mesa \\
+            __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \\
+            VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json
+fi
 _EOF_
 ```
 
 **Активируем их:**
 ```bash
-systemctl enable mask-nvidia.service unmask-nvidia.service environment_nouveau.service
+systemctl enable mask-nvidia.service unmask-nvidia.service
 ```
 
 TODO: проверить, актуально ли
