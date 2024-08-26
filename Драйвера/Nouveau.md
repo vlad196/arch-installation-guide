@@ -24,13 +24,6 @@ sudo -u vlad paru -S --needed mesa-vdpau lib32-mesa-vdpau
 
 TODO: перепроверить. Похоже, что сейчас не работает и нужно вставлять в параметры ядра `options.nouveau.config=NvGspRm=1`
 
-**Добавляем в modprobe.d:**
-
-```bash
-cat << _EOF_ > /etc/modprobe.d/nouveau-power-management.conf
-options nouveau config=NvGspRm=1
-_EOF_
-```
 
 #### Ранняя загрузка драйвера:
 >[!NOTE]
@@ -40,11 +33,6 @@ _EOF_
 **Добавляем модуль драйвера nouveau:**
 ```bash
 sed -e 's/\(MODULES=(\)/\1nouveau/' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf 
-```
-### Systemd хук для юнитов от nvidia (Если параллельно установлен проприетарный драйвер)
-**Для начала создаём папку:**
-```bash
-mkdir /etc/systemd/system/nvidia-switch.service.d
 ```
 
 #### Аппаратное ускорение:
