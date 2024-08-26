@@ -277,12 +277,8 @@ sed '/SudoLoop/s/^#//' -i /etc/paru.conf
 ```bash
 cp /etc/pacman.conf /etc/pacman.conf.backup
 ```
-**В /etc/pacman.conf раcкомментируем тестовые репозитории:**
+**В /etc/pacman.conf раcкомментируем multilib и добавояем комментарий:**
 ```bash
-sed '/Color/s/^#//' -i /etc/pacman.conf && \
-sed '/\[core-testing\]/{s/^#//;n;s/^#//;}' -i /etc/pacman.conf && \
-sed '/\[extra-testing\]/{s/^#//;n;s/^#//;}' -i /etc/pacman.conf && \
-sed '/\[multilib-testing\]/{s/^#//;n;s/^#//;}' -i /etc/pacman.conf && \
 sed '/\[multilib\]/{s/^#//;n;s/^#//;}' -i /etc/pacman.conf && \
 sed '/\[core-testing\]/i\
 \
@@ -507,15 +503,6 @@ sudo -u vlad paru -S --needed $MAIN_KERNEL  $MAIN_KERNEL-headers mkinitcpio-firm
 >этот пакет(Но это не обязательно т.к. оно ни на что не влияет):
 >https://wiki.archlinux.org/title/Mkinitcpio#Possibly_missing_firmware_for_module_XXXX
 
-### Подпись файлов efi созданными ключами:
-**Подписываем linux efi приложения с зашитыми ядрами, модулями, конфигами и т.п.:**
-```bash
-sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL.efi && \
-sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-fallback.efi
-```
-> [!NOTE]
-> sbctl создаёт после этого hook, который будет постоянно их подписывать)
-
 ## **Настройки для видеокарты NVIDIA:**
 Если видеокарта не имеет type-c, чтобы избавиться от ошибок можно его замутить
 **Добавляем в modprobe.d:**
@@ -557,6 +544,11 @@ memtest86-efi --install
 ```bash
 sbctl sign -s /efi/EFI/memtest86/memtestx64.efi
 ```
+**Добавлляем папку pacman.d/hooks**
+```bash
+mkdir -p /etc/pacman.d/hooks
+```
+
 **Добавляем триггер для подписи memtest86 при его обновлении:**
 ```bash
 cat << _EOF_ >> /etc/pacman.d/hooks/sign-memtest86-secureboot.hook
@@ -691,7 +683,7 @@ mkinitcpio -P
 #### Для работы уведомлений от Apparmor нужно:
 **Устанавливаем пакеты:**
 ```bash
-sudo -u vlad paru -S --needed python-notify2 python-psutil
+sudo -u vlad paru -S --asdeps --needed python-notify2 python-psutil
 ```
 **Создаём группу аудита:**
 ```bash
