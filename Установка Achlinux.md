@@ -353,6 +353,10 @@ efibootmgr networkmanager bluez pipewire pipewire-pulse pipewire-jack \
 pipewire-v4l2 lib32-pipewire lib32-pipewire-jack lib32-pipewire-v4l2 \
 noto-fonts-cjk ttf-hannom wl-clipboard terminus-font xdg-utils mailcap
 ```
+
+```bash
+sudo -u vlad paru -S --asdeps bat devtools 
+```
 ## Первоначальная настройка:
 ### Включение и настройка сети и bluetooth:
 >[!NOTE]
@@ -691,7 +695,7 @@ groupadd --system audit
 ```
 **Добавляем юзера в группу аудита:**
 ```bash
-usermod $USER -aG audit
+usermod vlad -aG audit
 ```
 **Добавляем группу аудита в конфига аудита:**
 ```bash
