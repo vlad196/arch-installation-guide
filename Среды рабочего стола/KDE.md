@@ -4,7 +4,7 @@ sudo -u vlad paru -Sy --needed plasma-meta kde-{graphics,system,utilities,multim
 ```
 
 ```bash
-sudo -u vlad paru -S --asdep --needed {flatpak,plymouth}-kcm cracklib galera judy perl-dbd-mariadb python-{mysqlclient,libevdev,pyudev,yaml,gobject,lsp-server}  gtk3 gtk4 sshfs kplotting kleopatra languagetool unrar p7zip lzop lrzip arj dosfstools fatresize {exfat,nilfs}-utils {a,h}spell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools freetds bluez-obex libwmf libopenraw webp-pixbuf-loader
+sudo -u vlad paru -S --asdep --needed {flatpak,plymouth}-kcm cracklib galera judy perl-dbd-mariadb python-{mysqlclient,libevdev,pyudev,yaml,gobject,lsp-server}  gtk3 gtk4 sshfs kplotting kleopatra languagetool unrar p7zip lzop lrzip arj dosfstools fatresize {exfat,nilfs}-utils {a,h}spell speech-dispatcher gst-libav kimageformats cryfs s-nail catdoc libappimage quota-tools freetds bluez-obex libwmf libopenraw webp-pixbuf-loader maliit-keyboard
 ```
 >[!Note]
 >Для роли phonon backend всегда выбираем VLC, т.к. на сегодня нормально [только он и поддерживается](https://community.kde.org/Distributions/Packaging_Recommendations#Non-Plasma_packages).
@@ -18,6 +18,13 @@ sudo systemctl enable sddm.service
 ```bash
 sudo systemctl enable power-profiles-daemon.service
 ```
+
+#### sddm через wayland
+```bash
+mkdir -p /etc/sddm.conf.d && \
+cp /usr/share/sddm/scripts/wayland-session /etc/sddm.conf.d/wayland-sesstion.conf
+```
+
 #### Для плавного перехода plymouth, нужно прописать следующее:
 **Для начала создаём папку, если её нет:**
 ```bash
