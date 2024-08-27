@@ -502,6 +502,10 @@ mkdir -p /efi/EFI/LINUX
 sudo -u vlad paru -S --needed $MAIN_KERNEL  $MAIN_KERNEL-headers mkinitcpio-firmware
 ```
 
+```bash
+sudo -u vlad paru -S --needed --asdeps wireless-regdb linux-firmware  modprobed-db uksmd
+```
+
 > [!NOTE]
 >Для того, чтобы mkinitcpio не делал предупреждений о отсутствующих модулях, я поставил
 >этот пакет(Но это не обязательно т.к. оно ни на что не влияет):
