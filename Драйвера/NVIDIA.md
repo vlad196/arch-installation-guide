@@ -67,6 +67,9 @@ pacman -Sy --needed nvidia-dkms lib32-nvidia-utils
 >pacman -Sy ${MAIN_KERNEL}-nvidia lib32-nvidia-utils
 >```
 
+```bash
+pacman -S nvidia-settings opencl-nvidia
+
 **Убираем module_blacklist в /dev/null, который появляется вместе с пакетом nvidia-utils:**
 ```bash
 ln -s /dev/null /etc/modprobe.d/nvidia-utils.conf
@@ -157,11 +160,7 @@ _EOF_
 ```bash
 mkinitcpio -P
 ```
-**Подписываем linux efi приложения с зашитыми ядрами, модулями, конфигами и т.п.:**
-```bash
-sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia.efi && \
-sbctl sign -s /efi/EFI/Linux/arch-$MAIN_KERNEL-nvidia-fallback.efi
-```
+
 **Добавляем юнит для маскирования юнитов от nvidia, когда nouveau запущен**
 ```bash
 cat << _EOF_ > /etc/systemd/system/mask-nvidia.service
@@ -208,7 +207,8 @@ if [[ ! -d /proc/driver/nvidia ]]; then
     if [[ -f /usr/share/glvnd/egl_vendor.d/10_nvidia.json || -f /usr/share/vulkan/icd.d/nvidia_icd.json ]]; then
         export __GLX_VENDOR_LIBRARY_NAME=mesa \\
             __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \\
-            VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json
+            VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json \\
+            NOUVEAU_USE_ZINK=1 ZINK_DEBUG=ioopt
     fi
 fi
 _EOF_
