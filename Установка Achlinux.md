@@ -1033,10 +1033,10 @@ _EOF_'
 
 ### [Gnome](/Среды%20рабочего%20стола/Gnome.md#Gnome-настройка-после-перезагрузки)
 
-### Ру словари для aspell и huspell checkers:
+### En и Ру словари для aspell и huspell checkers:
 
 ```bash
-sudo pacman -S aspell-ru hunspell-ru
+sudo pacman -S aspell-ru hunspell-ru aspell-en hunspell-en_US
 ```
 
 >[!NOTE}
