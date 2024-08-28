@@ -355,7 +355,7 @@ noto-fonts-cjk ttf-hannom wl-clipboard terminus-font xdg-utils mailcap
 ```
 
 ```bash
-sudo -u vlad paru -S --asdeps bat devtools 
+sudo -u vlad paru -S --asdeps --needed bat devtools lib32-dbus lib32-pipewire-jack lib32-libavtp lib32-libsamplerate lib32-libpulse lib32-speexdsp lib32-pipewire-v4l2
 ```
 ## Первоначальная настройка:
 ### Включение и настройка сети и bluetooth:
