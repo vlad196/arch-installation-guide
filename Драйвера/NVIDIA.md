@@ -64,7 +64,7 @@ pacman -Sy --needed nvidia-dkms lib32-nvidia-utils
 >[!Note]
 >Если стоит cachyos репозиторий и его ядро, ставим одноимённый бинарник драйвера:
 >```bash
->pacman -Sy ${MAIN_KERNEL}-nvidia lib32-nvidia-utils
+>pacman -Sy ${MAIN_KERNEL}-nvidia lib32-nvidia-utils libva-mesa-driver
 >```
 
 ```bash
