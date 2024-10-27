@@ -102,15 +102,24 @@ flatpak install flathub org.gtk.Gtk3theme.Breeze
 **Глобально внедряем папку с GTK настройками:**
 ```bash
 mkdir -p ~/.local/share/flatpak/overrides && \
-cat << _EOF_ > "$HOME/.local/share/flatpak/overrides/global"
+cat << _EOF_ > $HOME/.local/share/flatpak/overrides/global
 [Context]
 filesystems=xdg-config/gtk-3.0:ro;xdg-config/gtk-4.0:ro;
 _EOF_
 ```
 ### Настройка ufw для kdeconnect:
+Создание службы:
 ```bash
-sudo ufw allow 1714:1764/udp && \
-sudo ufw allow 1714:1764/tcp
+cat << _EOF_ > /etc/ufw/applications.d/kde-connect
+[Kde-connect]
+title= Kde-connect
+description=Kde-connect server
+ports=1714
+_EOF_
+```
+Запуск службы:
+```bash
+sudo ufw enable Kde-connect
 ```
 
 ### Установить русскую раскладку:
