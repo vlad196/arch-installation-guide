@@ -31,11 +31,11 @@ wipefs -a /dev/nvme0n1
 
 ## Создание разметки и разделов:
 **Размечаем диск в gpt:**
-```bash
+```ba
 parted /dev/nvme0n1 mklabel gpt
 ```
 **Создаём 2 раздела:**
-```bash
+```ba
 parted /dev/nvme0n1 mkpart '"EFI system partition"' fat32 2048s 2GiB && \
 parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 26GiB && \
 parted /dev/nvme0n1 mkpart '"system partition"' 26GiB 100%
@@ -48,12 +48,12 @@ parted /dev/nvme0n1 mkpart '"system partition"' 26GiB 100%
 >Ещё интересная вещь, это указание размера разделов в процентах. Она очень удобна, когда нужно указать раздел от начала 0% или до конца 100%
 
 **Назначаем флаги для разделов (необязательно, но пусть будет):**
-```bash
+```ba
 parted /dev/nvme0n1 set 1 esp on && \
 parted /dev/nvme0n1 set 2 swap on
 ```
 **Форматирование раздела под efi:**
-```bash
+```ba
 mkfs.fat -F32 /dev/nvme0n1p1
 ```
 ## LUKS шифрование разделов:
@@ -61,41 +61,41 @@ LUKS шифрование даёт нам раздел, который полн�
 Подробнее о моём варианте шифрования можно почитать тут:
 https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUKS
 **Проверяем модули на работоспособность:**
-```bash
+```ba
 modprobe dm-crypt && \
 modprobe dm-mod
 ```
-**Шифруем swap раздел в SHA 512:**
-```bash
-cryptsetup --verbose luksFormat --key-size 512 --hash sha512 /dev/nvme0n1p2
+**Шифруем swap раздел в A 512:**
+```ba
+cryptsetup --verbose luksFormat --key-size 512 --ha a512 /dev/nvme0n1p2
 ```
-**Шифруем root раздел в SHA 512:**
-```bash
-cryptsetup --verbose luksFormat --key-size 512 --hash sha512 /dev/nvme0n1p3
+**Шифруем root раздел в A 512:**
+```ba
+cryptsetup --verbose luksFormat --key-size 512 --ha a512 /dev/nvme0n1p3
 ```
 **Открываем зашифрованные разделов:**
-```bash
+```ba
 cryptsetup luksOpen /dev/nvme0n1p2 swap && \
 cryptsetup --allow-discards luksOpen /dev/nvme0n1p3 root
 ```
 **Экспортируем UUID дисков в переменные:**
-```bash
+```ba
 export NVME0N1P1=$(lsblk -dno UUID /dev/nvme0n1p1) \
 NVME0N1P2=$(lsblk -dno UUID /dev/nvme0n1p2) \
 NVME0N1P3=$(lsblk -dno UUID /dev/nvme0n1p3)
 ```
 **Экспортируем адреса зашифрованных контейнеров:**
-```bash
+```ba
 export ROOT=/dev/mapper/root \
 SWAP=/dev/mapper/swap
 ```
 ## Создание файловых систем в томах:
 **Создание файловой системы swap:** 
-```bash
+```ba
 mkswap -L swap $SWAP
 ```
 **Создание файловой системы f2fs:**
-```bash
+```ba
 mkfs.f2fs -l "Arch Linux" -O extra_attr,inode_checksum,sb_checksum,compression  $ROOT
 ```
 >[!NOTE]
@@ -104,11 +104,11 @@ mkfs.f2fs -l "Arch Linux" -O extra_attr,inode_checksum,sb_checksum,compression  
 >
 ## Монтирование разделов:
 **Обновление информации о дисках:**
-```bash
+```ba
 systemctl daemon-reload
 ```
 **Монтирование корневого раздела:**
-```bash
+```ba
 mount -o compress_algorithm=zstd:6,compress_chksum,atgc,gc_merge,lazytime $ROOT /mnt
 ```
 >[!NOTE]
@@ -116,11 +116,11 @@ mount -o compress_algorithm=zstd:6,compress_chksum,atgc,gc_merge,lazytime $ROOT 
 >Подбробнее тут: https://wiki.archlinux.org/title/F2FS#Recommended_mount_options 
 
 **Монтирование swap:**
-```bash
+```ba
 swapon $SWAP
 ```
 **Монтирование efi раздела:**
-```bash
+```ba
 mount --mkdir -o uid=0,gid=0,fmask=0137,dmask=0027  /dev/nvme0n1p1 /mnt/efi
 ```
 >[!NOTE]
@@ -458,7 +458,7 @@ _EOF_
 
 **Добавляем в переменные нужные ядра:**
 ```bash
-export MAIN_KERNEL=linux-cachyos-sched-ext
+export MAIN_KERNEL=linux-cachyos
 ```
 
 **Добавляем пресеты для разных UKI:**
