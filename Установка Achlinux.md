@@ -184,7 +184,7 @@ echo LANG=ru_RU.UTF-8 >> /etc/locale.conf
 ```
 **Установка шрифтов**
 ```bash
-cat <<- _EOF_ > /etc/vconsole.conf
+cat << _EOF_ > /etc/vconsole.conf
 KEYMAP=ruwin_alt_sh-UTF-8
 FONT=ter-v16n
 _EOF_
