@@ -185,8 +185,8 @@ echo LANG=ru_RU.UTF-8 >> /etc/locale.conf
 **Установка шрифтов**
 ```bash
 cat <<- _EOF_ > /etc/vconsole.conf
-	KEYMAP=ruwin_alt_sh-UTF-8
-	FONT=ter-v16n
+KEYMAP=ruwin_alt_sh-UTF-8
+FONT=ter-v16n
 _EOF_
 ```
 >[!NOTE]
@@ -240,8 +240,8 @@ passwd vlad
 ```bash
 sudo -u vlad cat << _EOF_ > /home/vlad/.makepkg.conf
 CFLAGS="-march=native -mtune=native -O2 -pipe -fno-plt -fexceptions \\
-      -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \\
-      -fstack-clash-protection -fcf-protection"
+-Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \\
+-fstack-clash-protection -fcf-protection"
 CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
 RUSTFLAGS="-C opt-level=3 -C target-cpu=native -C link-arg=-z -C link-arg=pack-relative-relocs"
 MAKEFLAGS="-j$(nproc) -l$(nproc)"
