@@ -142,8 +142,8 @@ options nvidia NVreg_DynamicPowerManagement=0x02
 # So you can enable it, if you have it
 #(also, you need enable resizable bar in the motherboard)
 
-options nvidia NVreg_EnableGpuFirmware=1
-# (May crash suspend. Need to check)
+# options nvidia NVreg_EnableGpuFirmware=1
+# Already default
 # GSP (GPU System Processor) - this is a special chip which is present on NVIDIA video cards starting
 # from Turing and above, which offloads GPU initialization and control tasks, which are usually
 #performed on CPU. This should improve performance and reduce the load on the CPU.
@@ -152,7 +152,8 @@ options nvidia NVreg_EnableGpuFirmware=1
 #for suspend and resume when using GSP firmware. This feature can also work badly on PRIME configurations,
 #so please check dmesg logs for errors if you want to use this.
 
-options nvidia_drm fbdev=1
+# options nvidia_drm fbdev=1
+# Already default
 # This options unlock new nvidia framebuffer
 _EOF_
 ```
@@ -205,10 +206,10 @@ cat << _EOF_ > /etc/profile.d/nouveau_loaders.sh
 if [[ ! -d /proc/driver/nvidia ]]; then
     # Check nvidia loaders exist
     if [[ -f /usr/share/glvnd/egl_vendor.d/10_nvidia.json || -f /usr/share/vulkan/icd.d/nvidia_icd.json ]]; then
-        export __GLX_VENDOR_LIBRARY_NAME=mesa \\
-            __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \\
-            VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json \\
-            NOUVEAU_USE_ZINK=1 ZINK_DEBUG=ioopt
+        export __GLX_VENDOR_LIBRARY_FILENAMES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json \
+            __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
+            VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json \
+            MESA_VK_DEVICE_SELECT=10de:1f02 NOUVEAU_USE_ZINK=true ZINK_DEBUG=ioopt
     fi
 fi
 _EOF_
