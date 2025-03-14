@@ -931,13 +931,11 @@ cat << _EOF_ >> ~/.config/environment.d/envvars.conf
 # Wayland environment
 SDL_VIDEODRIVER="wayland,x11" # Can break some native games
 XDG_SESSION_TYPE=wayland
-QT_QPA_PLATFORM="wayland;xcb"
 MOZ_DBUS_REMOTE=1 # For shared clipboard with Xwayland apps
-WLR_NO_HARDWARE_CURSORS=1 
 _JAVA_AWT_WM_NONREPARENTING=1
 ELECTRON_OZONE_PLATFORM_HINT=auto
-ZINK_DEBUG=ioopt #https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/28580
-NOUVEAU_USE_ZINK=1
+#QT_QPA_PLATFORM="wayland;xcb"
+#WLR_NO_HARDWARE_CURSORS=1 
 _EOF_
 ```
 > [!NOTE]
