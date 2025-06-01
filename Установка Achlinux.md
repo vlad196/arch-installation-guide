@@ -197,14 +197,7 @@ _EOF_
 ```bash
 echo "ArchLinux" >> /etc/hostname
 ```
-**Создание внутренней сети хоста:**
-```bash
-cat << _EOF_ >> /etc/hosts
-127.0.0.1		localhost
-::1			localhost
-127.0.1.1		ArchLinux.localdomain	ArchLinux
-_EOF_
-```
+
 ### Создание пользователя:
 **Создание пароля для root:**
 ```bash
@@ -639,7 +632,7 @@ _EOF_
 ### Avahi
 
 >[!NOTE]
-Компонент тоже важный. Вообще в системе уже стоит systemd-resolved,но avahi устанавливается неявно вместе с pipewire, поэтому, отмечаю его отдельно, чтобы не потерялcя
+Компонент тоже важный. Avahi устанавливается неявно вместе с pipewire, поэтому, отмечаю его отдельно, чтобы не потерялcя
 Что это: Avahi is a free Zero-configuration networking (zeroconf) implementation, including a system for multicast DNS/DNS-SD service discovery. It allows programs to publish and discover services and hosts running on a local network with no specific configuration. For example you can plug into a network and instantly find printers to print to, files to look at and people to talk to. It is licensed under the GNU Lesser General Public License (LGPL).
 
 >[!Что он делает:]
@@ -650,18 +643,21 @@ Avahi provides local hostname resolution using a "hostname.local" naming scheme.
 sudo -u vlad paru -S --needed avahi nss-mdns
 ```
 
-**Отключаем systemd-resolved:**
-```bash
-systemctl disable systemd-resolved.service
-```
 **Включаем avahi-daemon.service:**
 ```bash
 systemctl enable avahi-daemon.service
 ```
 
 >[!NOTE]
-Есть аналог от systemd — systemd-resolved, но, т.к. pipewire в зависимостях требует именно avahi, и какого-то отдельного смысла в systemd-resolved нет (Кроме как убрать иконки avahi из DE), я не буду его заменять.
-Плюс у systemd-resolved, в отличии от Avahi есть ограничения, например он имеет ограниченный resolvconf  интерфейс, и может много что с ним не работать.
+Systemd-resolved конфликтует с Avahi в mDNS, поэтому отключаем у systemd-resolved mDNS
+
+```bash
+cat << _EOF_ >> /etc/systemd/resolved.conf.d/disable-mDNS.conf
+[Resolve]
+MulticastDNS=false
+_EOF_
+```
+
 ### AppArmor
 **Устанавливаем сам apparmor (audit тоже качает ):**
 ```bash
