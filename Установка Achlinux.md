@@ -90,7 +90,7 @@ export ROOT=/dev/mapper/root \
 SWAP=/dev/mapper/swap
 ```
 ## Создание файловых систем в томах:
-**Создание файловой системы swap:** 
+**Создание файловой системы swap:**
 ```ba
 mkswap -L swap $SWAP
 ```
@@ -113,7 +113,7 @@ mount -o compress_algorithm=zstd:6,compress_chksum,atgc,gc_merge,lazytime $ROOT 
 ```
 >[!NOTE]
 >Раздел смонтирован с рекомендуемыми Archwiki параметрами
->Подбробнее тут: https://wiki.archlinux.org/title/F2FS#Recommended_mount_options 
+>Подбробнее тут: https://wiki.archlinux.org/title/F2FS#Recommended_mount_options
 
 **Монтирование swap:**
 ```ba
@@ -126,7 +126,7 @@ mount --mkdir -o uid=0,gid=0,fmask=0137,dmask=0027  /dev/nvme0n1p1 /mnt/efi
 >[!NOTE]
 >Делаем маску 0077, ради того, чтобы из под обычного пользователя не было доступа к этому разделу. Собственно, systemd-boot при установке про это и говорит
 >``` bash
->!Mount point '/boot' which backs the random seed file is world accessible, which is a security hole! !  
+>!Mount point '/boot' which backs the random seed file is world accessible, which is a security hole! !
 >! Random seed file '/boot/loader/random-seed' is world accessible, which is a security hole! !
 >```
 
@@ -153,7 +153,7 @@ genfstab -U /mnt > /mnt/etc/fstab
 ```bash
 arch-chroot /mnt
 ```
-# Часть 4. Настройка в подменённом корневом разделе: 
+# Часть 4. Настройка в подменённом корневом разделе:
 ### Установка времени:
 **Установка своего часового пояса:**
 ```bash
@@ -245,7 +245,7 @@ _EOF_
 >https://ventureo.codeberg.page/v2022.07.01/source/generic-system-acceleration.html#makepkg-conf
 
 ### PARU:
-Отличительной особенностью PARU является одновременно и то что он написан на Rust и то что он позволяет достаточно удобно работать с PKGBUILD 
+Отличительной особенностью PARU является одновременно и то что он написан на Rust и то что он позволяет достаточно удобно работать с PKGBUILD
 **Скачиваем PARU и входим в его каталог:**
 ```bash
 sudo -u vlad git clone https://aur.archlinux.org/paru.git /home/vlad/bin/paru
@@ -287,7 +287,7 @@ sed '/Color/s/^#//' -i /etc/pacman.conf
 **Добавляем репозитории которые Вам нужны:**
 Объявление через комментарий о участке со своими репозиториями
 ```bash
-sed -i "/# after the header, and they will be used before the default mirrors./{ 
+sed -i "/# after the header, and they will be used before the default mirrors./{
 n
 n
 a\\
@@ -338,17 +338,17 @@ reflector --verbose -l 5 -p https --sort rate --save /etc/pacman.d/mirrorlist
 ```bash
 sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 ```
-### Добавление пакетов: 
+### Добавление пакетов:
 **Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
 ```bash
 sudo -u vlad paru -S --needed wget man f2fs-tools amd-ucode \
-efibootmgr networkmanager bluez pipewire pipewire-pulse pipewire-jack \
-pipewire-v4l2 lib32-pipewire lib32-pipewire-jack lib32-pipewire-v4l2 \
-noto-fonts-cjk ttf-hannom wl-clipboard terminus-font xdg-utils mailcap
+efibootmgr networkmanager bluez pipewire  \
+lib32-pipewire noto-fonts-cjk ttf-hannom \
+wl-clipboard terminus-font xdg-utils mailcap
 ```
 
 ```bash
-sudo -u vlad paru -S --asdeps --needed bat devtools lib32-dbus lib32-pipewire-jack lib32-libavtp lib32-libsamplerate lib32-libpulse lib32-speexdsp lib32-pipewire-v4l2
+sudo -u vlad paru -S --asdeps --needed bat devtools lib32-dbus pipewire-pulse pipewire-jack lib32-pipewire-jack lib32-libavtp lib32-libsamplerate lib32-libpulse lib32-speexdsp lib32-pipewire-v4l2
 ```
 ## Первоначальная настройка:
 ### Включение и настройка сети и bluetooth:
@@ -374,21 +374,69 @@ sed '/KernelExperimental/{s/^#//;s/false/true/;}' -i /etc/bluetooth/main.conf
 systemctl enable NetworkManager.service && \
 systemctl enable bluetooth.service
 ```
+### Ananicy CPP и готовые правила
+Установка:
+```bash
+paru -S ananicy-cpp cachyos-ananicy-rules
+```
+Запуск:
+```bash
+systemctl enable ananicy-cpp.service
+```
+
+### systemd-oomd
+Запуск:
+```bash
+systemctl enable systemd-oomd.service
+```
+### irqbalance
+Установка:
+```bash
+paru -S irqbalance
+```
+Запуск:
+```bash
+systemctl enable irqbalance.service
+```
+
+### ccache
+Установка:
+```bash
+paru -S ccache
+```
+Редактируем makepkg.conf:
+```bash
+sudo -u vlad cat << _EOF_ >> /home/vlad/.makepkg.conf
+BUILDENV=(!distcc color ccache check !sign)
+_EOF_
+```
+### Отключение многоступенчатого включения дисков
+
+```bash
+cat << _EOF_ > /etc/modprobe.d/30-ahci-disable-sss.conf
+options libahci ignore_sss=1
+_EOF_
+```
+
 ### Редактирование MKINITCPIO:
 **Копируем mkinitcpio.conf в mkinitcpio.conf.d:**
 ```bash
-cp /etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/mkinitcpio.conf 
+cp /etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/mkinitcpio.conf
 ```
 
-**Редактировать hook mkinitcpio и включаем туда модули systemd и после block хуки sd encrypt:**
+**Редактируем hook mkinitcpio и включаем туда модули systemd и после block хуки sd encrypt. Меняем шифрование:**
 ```bash
-sed -i '/^HOOKS=/ s/udev/systemd/' /etc/mkinitcpio.conf.d/mkinitcpio.conf  && \
+sed -i '/COMPRESSION="lz4"/s/^#//' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf &&\
+sed -i '/COMPRESSION_OPTIONS=()/s/^#//' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf &&\
+sed -i 's/^\(COMPRESSION_OPTIONS=(\))$/\1-9)/' /etc/mkinitcpio.conf.d/mkinitcpio.conf  && \
 sed -i '/^HOOKS=/ s/keymap consolefont/sd-vconsole/' /etc/mkinitcpio.conf.d/mkinitcpio.conf && \
 sed -i "/^HOOKS=/ s/\(block\)\(.*\)$/\1 sd-encrypt\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf
 ```
 >[!NOTE]
 >Когда есть systemd, хук resume не нужен
->https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Configure_the_initramfs 
+>https://wiki.archlinux.org/title/Power_management/Suspend_and_hibernate#Configure_the_initramfs
+>
+>Про шифрование https://ventureo.codeberg.page/source/boot.html#initramfs
 
 **Добавляем /etc/crypttab.initramfs: **
 ```bash
@@ -446,7 +494,7 @@ _EOF_
 
 > [!NOTE]
 > Раньше был параметр `resume=$SWAP` для пробуждения из гибернизации, но компоненты systemd научились работать без этого указателя.
-> 
+>
 > Если стоит busybox, необходимо вернуть этот параметр.
 
 **Добавляем в переменные нужные ядра:**
@@ -535,7 +583,7 @@ sbctl sign -s /efi/EFI/Boot/bootx64.efi
 ### memtest86:
 **Установка:**
 ```bash
-sudo -u vlad paru -S memtest86-efi     
+sudo -u vlad paru -S memtest86-efi
 ```
 **Запускаем скрипт установки и следуем инструкциям:**
 ```bash
@@ -599,10 +647,10 @@ sed -i -e 's/$/ loglevel=3 quite splash rd.udev.log_priority=3 vt.global_cursor_
 ```
 **В hook в mkinitcpio после udev вставить plymouth:**
 ```bash
-sed -i "/^HOOKS=/ s/\(systemd\)\(.*\)$/\1 plymouth\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf 
+sed -i "/^HOOKS=/ s/\(systemd\)\(.*\)$/\1 plymouth\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf
 ```
 > [!NOTE]
-> У nvidia plymouth появляется довольно поздно и это нормально. 
+> У nvidia plymouth появляется довольно поздно и это нормально.
 > Всё из-за поздней загрузки kms
 ### Настройка plymouth:
 **Установка пакетов:**
@@ -789,7 +837,7 @@ systemctl start fstrim.service && \
 systemctl status fstrim.service
 ```
 > [!NOTE]
-> Естественно, если стоит f2fs, то включать периодический Trim не стоит. У f2fs есть свой Trim 
+> Естественно, если стоит f2fs, то включать периодический Trim не стоит. У f2fs есть свой Trim
 
 ### SSH
 **Установка**:
@@ -823,7 +871,7 @@ exit
 umount -Rv /mnt &&\
 swapoff /dev/mapper/swap &&\
 cryptsetup close /dev/mapper/root && \
-cryptsetup close /dev/mapper/swap 
+cryptsetup close /dev/mapper/swap
 ```
 
 **Перезагружаемся:**
@@ -904,10 +952,21 @@ sudo cryptsetup luksDump /dev/nvme0n1p3
 sudo mkinitcpio -P
 ```
 
-## Настойка подкачки:
+## Настойка подкачки отключения упреждённого чтения:
 
 ```bash
-sudo bash -c "echo 'vm.swappiness=10'>> /etc/sysctl.d/99-sysctl.conf"
+sudo bash -c "cat << __EOF__ > /etc/sysctl.d/99-sysctl.conf
+vm.swappiness=100
+vm.page-cluster=0
+__EOF__"
+```
+
+## Настройка кэша VFS:
+
+```bash
+sudo bash -c "cat << __EOF__ > /etc/sysctl.d/99-vfs.conf
+vm.vfs_cache_pressure=50
+__EOF__"
 ```
 
 ## Установка и запуск планировщика, если ядро с sched-ext
@@ -931,7 +990,7 @@ MOZ_DBUS_REMOTE=1 # For shared clipboard with Xwayland apps
 _JAVA_AWT_WM_NONREPARENTING=1
 ELECTRON_OZONE_PLATFORM_HINT=auto
 #QT_QPA_PLATFORM="wayland;xcb"
-#WLR_NO_HARDWARE_CURSORS=1 
+#WLR_NO_HARDWARE_CURSORS=1
 _EOF_
 ```
 > [!NOTE]
@@ -1056,4 +1115,3 @@ sudo systemctl disable sshd.service
 ```
 
 ### Готово!
-
