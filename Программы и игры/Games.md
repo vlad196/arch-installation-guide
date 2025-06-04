@@ -4,6 +4,10 @@
 paru -S cachyos-gaming-meta cachyos-gaming-applications
 ```
 
+### НастройкаProton-Cachyos
+
+Вся настройка Proton-Cachyos: https://wiki.cachyos.org/ru/configuration/gaming/#umu-launcher-setup
+
 ### Старая установка, без репозитория cachyos
 **Установка Lutris**
 ```bash
