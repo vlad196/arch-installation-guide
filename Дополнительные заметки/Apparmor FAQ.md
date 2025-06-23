@@ -7,26 +7,25 @@ sudo sysctl -w kernel.printk_ratelimit=0
 ```bash
 sudo aa-genprof <program>
 ```
-3. Работаем в этом приложении. Если уже есть информация где apparmor может заблокировать, повторяем именно это:
-4. В консоли с запущенным aa-genprof сканируем логи (S), а потом заканчиваем (F)
-5. Запускаем приложение в режиме aa-compain:
+3. Работаем в приложении. Если уже есть информация, где AppArmor может заблокировать, повторяем именно это.
+4. В консоли с запущенным `aa-genprof` сканируем логи (S), а потом завершаем (F).
+5. Мы запускаем приложение в режиме `aa-complain`:
 ```bash
 sudo aa-complain <program>
 ```
-6. Для детальной настройки запускаем aa-logprof и решаем что делать:
+6. Для детальной настройки запускаем `aa-logprof` и решаем, что делать:
 ```bash
 sudo aa-logprof
 ```
-TODO: добавить описания опций
-7. Запускаем приложение в режиме aa-enforce:
+TODO: добавим описания опций.
+7. Запустим приложение в режиме `aa-enforce`:
 ```bash
 sudo aa-enforce <program>
 ```
 
 >[!Note]
->Подробная информация: https://gitlab.com/apparmor/apparmor/-/wikis/Profiling_with_tools
+>Подробную информацию мы можем найти здесь: https://gitlab.com/apparmor/apparmor/-/wikis/Profiling_with_tools
 
 
 >[!Info]
->Wiki  по AppArmor: https://gitlab.com/apparmor/apparmor/-/wikis/home
-
+>Wiki по AppArmor: https://gitlab.com/apparmor/apparmor/-/wikis/home

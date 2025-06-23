@@ -9,7 +9,7 @@
 # Часть 1. Настройка SSH
 
 #### Установка через ssh позволяет сразу копировать готовые команды
-**На машине-клиент устанавливаем пароль:**
+**На машине-клиенте устанавливаем пароль:**
 ```bash
 passwd
 ```
@@ -30,7 +30,7 @@ wipefs -a /dev/nvme0n1
 ```
 
 ## Создание разметки и разделов:
-**Размечаем диск в gpt:**
+**Размечаем диск в GPT:**
 ```ba
 parted /dev/nvme0n1 mklabel gpt
 ```
@@ -73,7 +73,7 @@ cryptsetup --verbose luksFormat --key-size 512 --ha a512 /dev/nvme0n1p2
 ```ba
 cryptsetup --verbose luksFormat --key-size 512 --ha a512 /dev/nvme0n1p3
 ```
-**Открываем зашифрованные разделов:**
+**Открываем зашифрованные разделы:**
 ```ba
 cryptsetup luksOpen /dev/nvme0n1p2 swap && \
 cryptsetup --allow-discards luksOpen /dev/nvme0n1p3 root
@@ -141,7 +141,7 @@ mount --mkdir /dev/sdb /mnt/mnt/sdb
 ```bash
 reflector --verbose -l 5 -p https --sort rate --save /etc/pacman.d/mirrorlist
 ```
-**Установка базовых пакетов:**
+**Устанавливаем базовые пакеты:**
 ```bash
 pacstrap -K /mnt base base-devel git vi neovim mkinitcpio reflector
 ```
@@ -178,7 +178,7 @@ sed '/ru_RU.UTF-8 UTF-8/s/^#//' -i /etc/locale.gen
 ```bash
 locale-gen
 ```
-**Установка языка по умолчанию:**
+**Устанавливаем язык по умолчанию:**
 ```bash
 echo LANG=ru_RU.UTF-8 >> /etc/locale.conf
 ```
@@ -193,7 +193,7 @@ _EOF_
 >ruwin_alt_sh-UTF-8 раскладка, в отличии от раскладки, предлагаемой в "Installation guide" даёт возможность в режиме терминала менять раскладку через alt + shift
 >ter-v16n обычно, находиться внутри самого ядра. Есть проблема с тем, что после `splash` не загружаются внешние шрифты, поэтому выбрал из ядра тот, который поддерживает utf-8.
 #### Создание хоста:
-**Создание имени хоста:**
+**Создаём имя хоста:**
 ```bash
 echo "ArchLinux" >> /etc/hostname
 ```
@@ -981,16 +981,12 @@ sudo systemctl enable --now scx
 Все подробности можно посмотреть на том же nvidia-tweaks
 
 ```bash
-mkdir -p ~/.config/environment.d && \
-cat << _EOF_ >> ~/.config/environment.d/envvars.conf
-# Wayland environment
-SDL_VIDEODRIVER="wayland,x11" # Can break some native games
-XDG_SESSION_TYPE=wayland
-MOZ_DBUS_REMOTE=1 # For shared clipboard with Xwayland apps
-_JAVA_AWT_WM_NONREPARENTING=1
+mkdir -p /etc/environment.d && \
+cat << _EOF_ >> /etc/environment.d/10-wayland.conf
+CLUTTER_BACKEND=wayland
+MOZ_DBUS_REMOTE=1
+#_JAVA_AWT_WM_NONREPARENTING=1
 ELECTRON_OZONE_PLATFORM_HINT=auto
-#QT_QPA_PLATFORM="wayland;xcb"
-#WLR_NO_HARDWARE_CURSORS=1
 _EOF_
 ```
 > [!NOTE]
