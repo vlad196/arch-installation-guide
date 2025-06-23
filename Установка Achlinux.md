@@ -985,7 +985,7 @@ mkdir -p /etc/environment.d && \
 cat << _EOF_ >> /etc/environment.d/10-wayland.conf
 CLUTTER_BACKEND=wayland
 MOZ_DBUS_REMOTE=1
-#_JAVA_AWT_WM_NONREPARENTING=1
+#_JAVA_AWT_WM_NONREPARENTING=1 #use only with on-reparenting window manager
 ELECTRON_OZONE_PLATFORM_HINT=auto
 _EOF_
 ```
