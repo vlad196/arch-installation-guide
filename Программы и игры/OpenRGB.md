@@ -4,7 +4,7 @@ paru -S --needed openrgb i2c-tools
 ```
 **Включаем i2c-dev, создаём группу, если её нет и входим туда:**
 ```bash
-sudo modprobe i2c-dev || \ 
+sudo modprobe i2c-dev || \
 sudo groupadd --system i2c || \
 sudo usermod $USER -aG i2c
 ```
