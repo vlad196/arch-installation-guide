@@ -67,8 +67,8 @@ parted /dev/nvme0n1 mklabel gpt
 **Создаём 2 раздела:**
 ```bash
 parted /dev/nvme0n1 mkpart '"EFI system partition"' fat32 2048s 2GiB && \
-parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 26GiB && \
-parted /dev/nvme0n1 mkpart '"system partition"' 26GiB 100%
+parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 11GiB && \
+parted /dev/nvme0n1 mkpart '"system partition"' 11GiB 100%
 ```
 >[!NOTE]
 >Очень важно, следите за размером секторов на диске! От этого зависит скорость доступа к диску. Если при создании раздела не соблюсти кратность сектора, то контроллер будет чаще обращаться к ячейкам, а значит увеличится и время доступа к данным. В данном случае, минимальный разрешённый сектор у меня 2048s(секторов).
@@ -160,10 +160,7 @@ mount --mkdir -o uid=0,gid=0,fmask=0137,dmask=0027  /dev/nvme0n1p1 /mnt/efi
 >! Random seed file '/boot/loader/random-seed' is world accessible, which is a security hole! !
 >```
 
-**Мой дополнительный диск:**
-```bash
-mount --mkdir /dev/sdb /mnt/mnt/sdb
-```
+
 # Часть 3. Установка до подмены корневого раздела:
 
 **Подбор зеркал:**
@@ -324,6 +321,36 @@ a\\
 #Custom\ repositories\n
 }" -i /etc/pacman.conf
 ```
+
+linux-surface репозиторий. Добавляем ключи:
+```bash
+curl -s https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc && \
+pacman-key --add - \
+pacman-key --finger 56C464BAAC421453 &&\
+pacman-key --lsign-key 56C464BAAC421453
+```
+Добавляем репозиторий в /etc/pacman.d/
+```bash
+cat << _EOF_ > /etc/pacman.d/linux-surface-mirrorlist
+Server = https://pkg.surfacelinux.com/arch/
+_EOF_
+```
+
+Уже репозитории добавляем в pacman.conf:
+```bash
+sed '/# Default repositories/i\
+\# linux-surface repos\
+\[linux-surface\]\
+Include = /etc/pacman.d/linux-surface-mirrorlist\
+\
+\[cachyos-extra-v3\]\
+Include = /etc/pacman.d/cachyos-v3-mirrorlist\
+\
+\[cachyos\]\
+Include = /etc/pacman.d/cachyos-mirrorlist\
+' -i /etc/pacman.conf
+```
+
 CachyOS репозитории (Репозитории скомпилированный под 86-64-v3 архитектуру)
 Обязательно! Перед добавлением в pacman.conf добавляем ключи с их сайта:
 ```bash
@@ -338,7 +365,7 @@ pacman -U 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-202403
     'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.0.0.r7.g1f38429-1-x86_64.pkg.tar.zst'
 ```
 
-Уже потом добавляем в pacman.conf:
+Уже репозитории добавляем в pacman.conf:
 ```bash
 sed '/# Default repositories/i\
 \# cachyos repos\
@@ -369,9 +396,15 @@ reflector --verbose -l 5 -p https --sort rate --save /etc/pacman.d/mirrorlist
 sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 ```
 ### Добавление пакетов:
+**Скачивание необходимых для Surface-book пакеты:**
+```bash
+sudo -u vlad paru -S --needed linux-surface \ linux-surface-headers iptsd linux-firmware\
+linux-firmware-marvell libwacom-surface
+```
+
 **Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
 ```bash
-sudo -u vlad paru -S --needed wget man f2fs-tools amd-ucode \
+sudo -u vlad paru -S --needed wget man f2fs-tools intel-ucode \
 efibootmgr networkmanager bluez pipewire  \
 lib32-pipewire noto-fonts-cjk ttf-hannom \
 wl-clipboard terminus-font xdg-utils mailcap
@@ -404,6 +437,7 @@ sed '/KernelExperimental/{s/^#//;s/false/true/;}' -i /etc/bluetooth/main.conf
 systemctl enable NetworkManager.service && \
 systemctl enable bluetooth.service
 ```
+
 ### Ananicy CPP и готовые правила
 Установка:
 ```bash
@@ -529,7 +563,7 @@ _EOF_
 
 **Добавляем в переменные нужные ядра:**
 ```bash
-export MAIN_KERNEL=linux-cachyos
+export MAIN_KERNEL=linux-surface
 ```
 
 **Добавляем пресеты для разных UKI:**
@@ -835,20 +869,27 @@ sudo -u vlad cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
 # homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
 # absolute path. No other format is supported.
 #
-XDG_DESKTOP_DIR="/mnt/sdb/Рабочий стол"
-XDG_DOWNLOAD_DIR="/mnt/sdb/Загрузки"
+XDG_DESKTOP_DIR="$HOME/Рабочий стол"
+XDG_DOWNLOAD_DIR="$HOME/Загрузки"
 XDG_TEMPLATES_DIR="$HOME/Шаблоны"
 XDG_PUBLICSHARE_DIR="$HOME/Общедоступные"
-XDG_DOCUMENTS_DIR="/mnt/sdb/YandexDisk/Компьютер SURFACE-BOOK/Документы"
-XDG_MUSIC_DIR="/mnt/sdb/Музыка"
-XDG_PICTURES_DIR="/mnt/sdb/YandexDisk/Компьютер SURFACE-BOOK/Изображения"
-XDG_VIDEOS_DIR="/mnt/sdb/Видео"
+XDG_DOCUMENTS_DIR="$HOME/Документы"
+XDG_MUSIC_DIR="$HOME/Музыка"
+XDG_PICTURES_DIR="$HOME/Изображения"
+XDG_VIDEOS_DIR="$HOME/Видео"
 _EOF_
 ```
 
 ### Шрифты:
 ```bash
 sudo -u vlad paru -S --needed ttf-ubuntu-nerd ttf-spacemono ttf-meslo-nerd-font-powerlevel10k
+```
+### Решаем проблему с плохим качеством звука на Surface-book:
+
+```bash
+cat << _EOF_ > /etc/pulse/daemon.conf
+speex-float-5
+_EOF_
 ```
 
 ### Trim:
