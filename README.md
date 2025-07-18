@@ -1,4 +1,4 @@
-# Установка и настройка Arch Linux:
+# Установка и настройка Arch Linux для Surface-Book:
 ### Содержание:
 - [Устанавливаем Arch Linux](Установка%20Achlinux.md)
 - [Настраиваем драйвера](/Драйвера)
@@ -10,10 +10,12 @@
 
 ## Особенности:
 - Описана настройка pacman.conf.
-- Описана установка двух ядер: одно основное и одно запасное с базовыми настройками.
+- Описана использование репозитория проекта [linux-surface](https://github.com/linux-surface/linux-surface)
+- Описана установка компонентов, драйверов и ядра проекта [linux-surface](https://github.com/linux-surface/linux-surface)
+- Описана установка двух ядер: одно основное и одно запасное с базовыми настройками. #TODO
 - Описана разметка корневого раздела и swap на зашифрованные разделы LUKS.
 - Описана настройка UKI.
-- Описана настройка и установка драйверов Nvidia или Nouveau на выбор.
+- Описана настройка и установка драйверов Nvidia или Nouveau на выбор. #TODO
 - Описана настройка и включение Secure Boot.
 - Описано встраивание ключей расшифровки LUKS в TPM модуль.
 - Описана настройка PLYMOUTH.
@@ -22,8 +24,8 @@
 - Описаны такие компоненты, как AppArmor, UsbGuard, Maldet, Timeshift, ClamAv и др.
 
 ## Моя система:
-#### Видеокарта: NVIDIA архитектура Turing
-#### Процессор: AMD архитектура Zen2
+#### Видеокарта: [NVIDIA GTX 940m с GDDR5](https://www.notebookcheck-ru.com/NVIDIA-Maxwell-GPU-940M-GDDR5.413890.0.html), архитектура Maxwell
+#### Процессор: Intell i5-6300U архитектура Skylake
 #### Разметка дисков:
 ```mermaid
 flowchart LR
@@ -46,30 +48,13 @@ flowchart LR
     direction LR
         /
         /efi
-        subgraph /mnt
-            /mnt/sdb
         end
     end
-    subgraph sdb
-        direction TB
-        btrfs
-    end
-    subgraph sda
-        direction TB
-        subgraph ntfs
-    end
-  end
-  subgraph Windows
-    direction LR
-      boot
-      C:/
   end
   
 
 fat32 -- 2Gb--> /efi
 fat32 -- 2Gb--> boot
-f2fs -- 935Gb--> /
-swapfs -- 16Gb--> swap
-btrfs -- 2Tb--> /mnt/sdb
-ntfs -- 256Gb--> C:/
+f2fs -- 499Gb--> /
+swapfs -- 11Gb--> swap
 ```
