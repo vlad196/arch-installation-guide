@@ -258,14 +258,14 @@ passwd vlad
 ## Настройка компилятора и пакетного менеджера:
 **Для мнимой производительности для нашего пользователя переназначаем флаги GCC:**
 ```bash
-sudo -u vlad cat << _EOF_ > /home/vlad/.makepkg.conf
+sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.makepkg.conf
 CFLAGS="-march=native -mtune=native -O2 -pipe -fno-plt -fexceptions \\
 -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \\
 -fstack-clash-protection -fcf-protection"
 CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
 RUSTFLAGS="-C opt-level=3 -C target-cpu=native -C link-arg=-z -C link-arg=pack-relative-relocs"
 MAKEFLAGS="-j$(nproc) -l$(nproc)"
-_EOF_
+_EOF_'
 ```
 >[!NOTE]
 >Все эти флаги взяты отсюда:
@@ -324,9 +324,9 @@ a\\
 
 linux-surface репозиторий. Добавляем ключи:
 ```bash
-curl -s https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc && \
-pacman-key --add - \
-pacman-key --finger 56C464BAAC421453 &&\
+curl -s https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc | \
+pacman-key --add - && \
+pacman-key --finger 56C464BAAC421453 && \
 pacman-key --lsign-key 56C464BAAC421453
 ```
 Добавляем репозиторий в /etc/pacman.d/
@@ -342,12 +342,6 @@ sed '/# Default repositories/i\
 \# linux-surface repos\
 \[linux-surface\]\
 Include = /etc/pacman.d/linux-surface-mirrorlist\
-\
-\[cachyos-extra-v3\]\
-Include = /etc/pacman.d/cachyos-v3-mirrorlist\
-\
-\[cachyos\]\
-Include = /etc/pacman.d/cachyos-mirrorlist\
 ' -i /etc/pacman.conf
 ```
 
@@ -398,8 +392,7 @@ sudo -u vlad paru -Sy archlinux-keyring && sudo -u vlad paru -Su
 ### Добавление пакетов:
 **Скачивание необходимых для Surface-book пакеты:**
 ```bash
-sudo -u vlad paru -S --needed linux-surface \ linux-surface-headers iptsd linux-firmware\
-linux-firmware-marvell libwacom-surface
+sudo -u vlad paru -S --needed iptsd linux-firmware linux-firmware-marvell libwacom-surface
 ```
 
 **Скачиваем необходимые пакеты. Микрокод, f2fs пакеты, менеджер сети, менеджер efiboot, lvm2 и дополнительные шрифты:**
@@ -861,7 +854,7 @@ sudo -u vlad paru -S --needed xdg-user-dirs
 **Указываем папки для типовых каталогов:**
 ```bash
 sudo -u vlad mkdir -p /home/vlad/.config && \
-sudo -u vlad cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
+sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
 # This file is written by xdg-user-dirs-update
 # If you want to change or add directories, just edit the line you're
 # interested in. All local changes will be retained on the next run.
@@ -877,7 +870,7 @@ XDG_DOCUMENTS_DIR="$HOME/Документы"
 XDG_MUSIC_DIR="$HOME/Музыка"
 XDG_PICTURES_DIR="$HOME/Изображения"
 XDG_VIDEOS_DIR="$HOME/Видео"
-_EOF_
+_EOF_'
 ```
 
 ### Шрифты:

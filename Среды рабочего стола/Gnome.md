@@ -10,23 +10,8 @@ sed '/# Default repositories/i\
 **Установка:**
 
 ```bash
-sudo -u vlad paru -Sy --needed baobab eog evince gdm gnome-backgrounds \
-gnome-calculator gnome-calendar gnome-characters gnome-clocks \
-gnome-color-manager gnome-console gnome-contacts gnome-control-center \
-gnome-disk-utility gnome-font-viewer gnome-keyring gnome-logs gnome-menus \
-gnome-photos gnome-music gnome-session gnome-settings-daemon gnome-shell \
-gnome-shell-extensions gnome-software gnome-system-monitor gnome-text-editor \
-gnome-tour gnome-user-docs gnome-user-share gnome-weather grilo-plugins gvfs \
-gvfs-afc gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-smb malcontent \
-nautilus orca rygel sushi totem tracker3-miners xdg-desktop-portal-gnome \
-xdg-user-dirs-gtk yelp dconf-editor endeavour file-roller \
-geary gnome-boxes gnome-devel-docs \
-gnome-multi-writer gnome-notes gnome-tweaks \
-seahorse sysprof gnome-shell-extension-gsconnect pipewire-pulse gnome-browser-connector
+sudo -u vlad paru -Sy --needed gnome gnome-extra gnome-tweaks
 ```
-> [!INFO]
-> Для gnome-terminal и gedit сделали замену и оно уже в основном пакете https://www.reddit.com/r/gnome/comments/rq04ha/what_to_expect_in_gnome_in_2022/
-
 **Включаем оконный менеджер:**
 ```bash
 systemctl enable gdm.service
