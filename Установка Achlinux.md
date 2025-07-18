@@ -6,7 +6,7 @@
 **1) Если решили заново настроить и нет уже готовых ключей для подписи, то убеждаемся, что Secure-boot сброшен и ключи пусты (Не вернувшиеся в дефолтное состояние, а именно пустые)**
 **2) Проверяем, что для не подписанного arch iso был отключён Secure-boot**
 **3) Проверяем, что TPM включён**
-# Часть 1. Настройка SSH
+# Часть 1. Настройка ssh
 
 #### Установка через ssh позволяет сразу копировать готовые команды
 **На машине-клиенте устанавливаем пароль:**
@@ -19,10 +19,10 @@ ip -br a
 ```
 **Далее на машине-настройщике подключаемся по ssh к машине-клиенту**
 ```bash
-ssh ssh -o ServerAliveInterval=30 root@<ip машины-клиента, который узнали выше>
+ssh ssh -o ServerAliveInterval=29 root@<ip машины-клиента, который узнали выше>
 ```
 >[!NOTE]
->Добавил ServerAliveInterval=30, чтобы не было отключения при бездействии.
+>Добавил ServerAliveInterval=29, чтобы не было отключения при бездействии.
 # Часть 2. Подготовка дисков:
 ## Удаление данных с диска:
 ```bash
@@ -31,11 +31,11 @@ wipefs -a /dev/nvme0n1
 
 ## Создание разметки и разделов:
 **Размечаем диск в GPT:**
-```ba
+```bash
 parted /dev/nvme0n1 mklabel gpt
 ```
 **Создаём 2 раздела:**
-```ba
+```bash
 parted /dev/nvme0n1 mkpart '"EFI system partition"' fat32 2048s 2GiB && \
 parted /dev/nvme0n1 mkpart '"swap partition"' 2GiB 26GiB && \
 parted /dev/nvme0n1 mkpart '"system partition"' 26GiB 100%
@@ -48,12 +48,12 @@ parted /dev/nvme0n1 mkpart '"system partition"' 26GiB 100%
 >Ещё интересная вещь, это указание размера разделов в процентах. Она очень удобна, когда нужно указать раздел от начала 0% или до конца 100%
 
 **Назначаем флаги для разделов (необязательно, но пусть будет):**
-```ba
+```bash
 parted /dev/nvme0n1 set 1 esp on && \
 parted /dev/nvme0n1 set 2 swap on
 ```
 **Форматирование раздела под efi:**
-```ba
+```bash
 mkfs.fat -F32 /dev/nvme0n1p1
 ```
 ## LUKS шифрование разделов:
@@ -61,41 +61,41 @@ LUKS шифрование даёт нам раздел, который полн�
 Подробнее о моём варианте шифрования можно почитать тут:
 https://wiki.archlinux.org/title/Dm-crypt/Encrypting_an_entire_system#LVM_on_LUKS
 **Проверяем модули на работоспособность:**
-```ba
+```bash
 modprobe dm-crypt && \
 modprobe dm-mod
 ```
 **Шифруем swap раздел в A 512:**
-```ba
-cryptsetup --verbose luksFormat --key-size 512 --ha a512 /dev/nvme0n1p2
+```bash
+cryptsetup --verbose luksFormat --key-size 512 --hash sha512 /dev/nvme0n1p2
 ```
 **Шифруем root раздел в A 512:**
-```ba
-cryptsetup --verbose luksFormat --key-size 512 --ha a512 /dev/nvme0n1p3
+```bash
+cryptsetup --verbose luksFormat --key-size 512 --hash sha512 /dev/nvme0n1p3
 ```
 **Открываем зашифрованные разделы:**
-```ba
+```bash
 cryptsetup luksOpen /dev/nvme0n1p2 swap && \
 cryptsetup --allow-discards luksOpen /dev/nvme0n1p3 root
 ```
 **Экспортируем UUID дисков в переменные:**
-```ba
+```bash
 export NVME0N1P1=$(lsblk -dno UUID /dev/nvme0n1p1) \
 NVME0N1P2=$(lsblk -dno UUID /dev/nvme0n1p2) \
 NVME0N1P3=$(lsblk -dno UUID /dev/nvme0n1p3)
 ```
 **Экспортируем адреса зашифрованных контейнеров:**
-```ba
+```bash
 export ROOT=/dev/mapper/root \
 SWAP=/dev/mapper/swap
 ```
 ## Создание файловых систем в томах:
 **Создание файловой системы swap:**
-```ba
+```bash
 mkswap -L swap $SWAP
 ```
 **Создание файловой системы f2fs:**
-```ba
+```bash
 mkfs.f2fs -l "Arch Linux" -O extra_attr,inode_checksum,sb_checksum,compression  $ROOT
 ```
 >[!NOTE]
@@ -104,11 +104,11 @@ mkfs.f2fs -l "Arch Linux" -O extra_attr,inode_checksum,sb_checksum,compression  
 >
 ## Монтирование разделов:
 **Обновление информации о дисках:**
-```ba
+```bash
 systemctl daemon-reload
 ```
 **Монтирование корневого раздела:**
-```ba
+```bash
 mount -o compress_algorithm=zstd:6,compress_chksum,atgc,gc_merge,lazytime $ROOT /mnt
 ```
 >[!NOTE]
@@ -116,11 +116,11 @@ mount -o compress_algorithm=zstd:6,compress_chksum,atgc,gc_merge,lazytime $ROOT 
 >Подбробнее тут: https://wiki.archlinux.org/title/F2FS#Recommended_mount_options
 
 **Монтирование swap:**
-```ba
+```bash
 swapon $SWAP
 ```
 **Монтирование efi раздела:**
-```ba
+```bash
 mount --mkdir -o uid=0,gid=0,fmask=0137,dmask=0027  /dev/nvme0n1p1 /mnt/efi
 ```
 >[!NOTE]
@@ -303,9 +303,9 @@ pacman-key --lsign-key F3B607488DB35A47
 Устанавливаем необходимые пакеты:
 ```bash
 pacman -U 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
-               'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-18-1-any.pkg.tar.zst'    \
-               'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-18-1-any.pkg.tar.zst' \
-               'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-6.1.0-7-x86_64.pkg.tar.zst'
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-22-1-any.pkg.tar.zst' \
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-22-1-any.pkg.tar.zst' \
+    'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.0.0.r7.g1f38429-1-x86_64.pkg.tar.zst'
 ```
 
 Уже потом добавляем в pacman.conf:
@@ -839,7 +839,7 @@ systemctl status fstrim.service
 > [!NOTE]
 > Естественно, если стоит f2fs, то включать периодический Trim не стоит. У f2fs есть свой Trim
 
-### SSH
+### ssh
 **Установка**:
 ```bash
 sudo -u vlad paru -S --needed openssh
@@ -886,7 +886,7 @@ reboot
 # Всё что ниже нужно делать уже после перезагрузки системы
 ___
 # Часть 5. Настройка после загрузки со своего ядра:
-## Повторное подключение по SSH:
+## Повторное подключение по ssh:
 
 **На машине-клиент снова узнаём ip его локальный ip(Будет примерно 192.168.1.111):**
 ```bash
@@ -981,13 +981,13 @@ sudo systemctl enable --now scx
 Все подробности можно посмотреть на том же nvidia-tweaks
 
 ```bash
-mkdir -p /etc/environment.d && \
+sudo bash -c 'mkdir -p /etc/environment.d && \
 cat << _EOF_ >> /etc/environment.d/10-wayland.conf
 CLUTTER_BACKEND=wayland
 MOZ_DBUS_REMOTE=1
 #_JAVA_AWT_WM_NONREPARENTING=1 #use only with on-reparenting window manager
 ELECTRON_OZONE_PLATFORM_HINT=auto
-_EOF_
+_EOF_'
 ```
 > [!NOTE]
 > Логичней использовать окружения не сессий или пользователей, а сессии графических сред. Поэтому устанавливаем не в переменные оболочки или environment, а в переменные окружения wayland

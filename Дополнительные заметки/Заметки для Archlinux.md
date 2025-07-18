@@ -1,5 +1,5 @@
 
-## Если размонтировал диски до того как настроил систему или случилась ошибка, то после этапа с  SSH пишем:
+## Если размонтировал диски до того как настроил систему или случилась ошибка, то после этапа с  sshпишем:
 
 ```bash
 cryptsetup luksOpen /dev/nvme0n1p2 LVM_part
@@ -31,7 +31,7 @@ sudo tpm2_clear
 sudo systemd-cryptenroll /dev/nvme0n1p2 --wipe-slot=tpm2
 ```
 
-## Если нужно удалить все из boot 
+## Если нужно удалить все из boot
 ```bash
 rm -f /mnr/efi/EFI/Linux/*
 ```
@@ -64,7 +64,7 @@ sudo zsh -c "usbguard generate-policy > /etc/usbguard/rules.conf" && sudo system
 
 ## Обновление ядра
 **При обновлении ядра paru преложит ещё раз посмотреть PKGBUILD. Изменяем его:**
-Вариант 1) 
+Вариант 1)
 ```bash
 _use_current=y
 ```
@@ -111,7 +111,7 @@ skip-test=KRNL-6000
 skip-test=TOOL-5002
 skip-test=FINT-4350 # пока не работает aide
 skip-test=CRYP-7902 # пока не разобрался с одним из сертификатов
-skip-test=HRDN-7222 # не работает paru 
+skip-test=HRDN-7222 # не работает paru
 
 
 

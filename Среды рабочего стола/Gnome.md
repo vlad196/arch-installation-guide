@@ -104,9 +104,9 @@ gsettings set org.gnome.desktop.privacy usb-protection true
 
 ### Указываем таким программам, как телеграмм файловый менеджер gnome:
 ```bash
-cat << _EOF_ >> ~/.config/environment.d/envvars.conf
+sudo bash -c 'cat << _EOF_ >> /etc/environment.d/envvars.conf
 QT_QPA_PLATFORMTHEME=gtk3
-_EOF_
+_EOF_'
 ```
 
 ### Включаем 3д-ускорение в xwayland:
@@ -124,4 +124,3 @@ sed "/^session[[:space:]]*optional/s/auto_start/only_if=gdm/" -i /etc/pam.d/gdm-
 Ошибка в Арч вики: https://wiki.archlinux.org/title/GNOME/Keyring#Unable_to_locate_daemon_control_file
 
 Взято отсюда: https://askubuntu.com/questions/1144153/how-to-solve-gkr-pam-unable-to-locate-daemon-control-file
-

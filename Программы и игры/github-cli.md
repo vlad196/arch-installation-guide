@@ -12,8 +12,8 @@ gh auth login
 ```
 В моём случае настройки подходят такие:
 - GitHub.com
-- SSH
-- no generate SSH (Если уже есть)
+- ssh
+- no generate ssh(Если уже есть)
 - Login with a web browser
 
 
