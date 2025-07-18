@@ -486,6 +486,7 @@ cp /etc/mkinitcpio.conf /etc/mkinitcpio.conf.d/mkinitcpio.conf
 sed -i '/COMPRESSION="lz4"/s/^#//' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf &&\
 sed -i '/COMPRESSION_OPTIONS=()/s/^#//' -i /etc/mkinitcpio.conf.d/mkinitcpio.conf &&\
 sed -i 's/^\(COMPRESSION_OPTIONS=(\))$/\1-9)/' /etc/mkinitcpio.conf.d/mkinitcpio.conf  && \
+sed -i '/^HOOKS=/ s/udev/systemd/' /etc/mkinitcpio.conf.d/mkinitcpio.conf  && \
 sed -i '/^HOOKS=/ s/keymap consolefont/sd-vconsole/' /etc/mkinitcpio.conf.d/mkinitcpio.conf && \
 sed -i "/^HOOKS=/ s/\(block\)\(.*\)$/\1 sd-encrypt\2/" /etc/mkinitcpio.conf.d/mkinitcpio.conf
 ```
@@ -528,7 +529,7 @@ sbctl enroll-keys --microsoft
 **Добавить опции основного ядра в cmdline:**
 ```bash
 cat << _EOF_ > /etc/kernel/cmdline
-options page_alloc.shuffle=1 root=$ROOT rootflags=atgc resume=$SWAP rw
+options page_alloc.shuffle=1 root=$ROOT rootflags=atgc resume=$SWAP rw nosgx
 _EOF_
 ```
 **Добавим опции для fallback (В итоге, он как запасной имеет минимальные для загрузки параметры, например будет в дальнейшем без plymouth параметров):**
@@ -548,6 +549,7 @@ _EOF_
 >**rootflags=atgc** - опцию, которую я не расшифровал, но тут написано зачем оно:https://wiki.archlinux.org/title/F2FS#Remounting_impossible_with_some_options
 >
 >**rw** - разрешение на чтение запись раздела
+>**nosgx** - отключает поддержку SGX. У Surface book нет поддержки
 
 > [!NOTE]
 > Раньше был параметр `resume=$SWAP` для пробуждения из гибернизации, но компоненты systemd научились работать без этого указателя.
@@ -610,15 +612,7 @@ sudo -u vlad paru -S --needed --asdeps wireless-regdb linux-firmware  modprobed-
 >https://wiki.archlinux.org/title/Mkinitcpio#Possibly_missing_firmware_for_module_XXXX
 
 ## **Настройки для видеокарты NVIDIA:**
-Если видеокарта не имеет type-c, чтобы избавиться от ошибок можно его замутить
-**Добавляем в modprobe.d:**
-```bash
-cat << _EOF_ > /etc/modprobe.d/blacklist_i2c.conf
-blacklist i2c_nvidia_gpu
-#
-# If the video card does not have type-c, and support is included in the drivers, then you can mute it
-_EOF_
-```
+
 ### [NVIDIA](/Драйвера/NVIDIA.md)
 ### [Nouveau](/Драйвера/Nouveau.md)
 
@@ -723,15 +717,16 @@ plymouth-set-default-theme -R arch-bgrt
 #### Украшаем окно приветствия:
 ```bash
 cat << _EOF_ >> /etc/issue
- \e[H\e[2J
-           \e[1;36m.
-          \e[1;36m/#\
-         \e[1;36m/###\      \e[1;37m               #     \e[1;36m| *
-        \e[1;36m/p^###\     \e[1;37m a##e #%" a#"e 6##%  \e[1;36m| | |-^-. |   | \ /
-       \e[1;36m/##P^q##\    \e[1;37m.oOo# #   #    #  #  \e[1;36m| | |   | |   |  X
-      \e[1;36m/##(   )##\   \e[1;37m%OoO# #   %#e" #  #  \e[1;36m| | |   | ^._.| / \ \e[0;37mTM
-     \e[1;36m/###P   q#,^\
-    \e[1;36m/P^         ^q\ \e[0;37mTM
+
+,...                                                               ,,          ,,    ,,
+.M"""bgd                     .d' ""                                      db                     `7MM        `7MM    db
+,MI    "Y                     dM`                                        ;MM:                      MM          MM
+`MMb.   `7MM  `7MM  `7Mb,od8 mMMmm ,6"Yb.  ,p6"bo   .gP"Ya              ,V^MM.    `7Mb,od8 ,p6"bo  MMpMMMb.    MM  `7MM  `7MMpMMMb.`7MM  `7MM  `7M'   `MF'
+`YMMNq. MM    MM    MM' "'  MM  8)   MM 6M'  OO  ,M'   Yb            ,M  `MM      MM' "'6M'  OO  MM    MM    MM    MM    MM    MM  MM    MM    `VA ,V'
+.     `MM MM    MM    MM      MM   ,pm9MM 8M       8M""""""            AbmmmqMA     MM    8M       MM    MM    MM    MM    MM    MM  MM    MM      XMX
+Mb     dM MM    MM    MM      MM  8M   MM YM.    , YM.    ,           A'     VML    MM    YM.    , MM    MM    MM    MM    MM    MM  MM    MM    ,V' VA.
+P"Ybmmd"  `Mbod"YML..JMML.  .JMML.`Moo9^Yo.YMbmd'   `Mbmmd'         .AMA.   .AMMA..JMML.   YMbmd'.JMML  JMML..JMML..JMML..JMML  JMML.`Mbod"YML..AM.   .MA.
+
 _EOF_
 ```
 ### Avahi
@@ -777,7 +772,7 @@ systemctl enable apparmor.service
 
 **Прописываем параметры ядра:**
 ```bash
-sed -i -e 's/$/ lsm=landlock,lockdown,yama,integrity,apparmor,bpf audit=1 audit_backlog_limit=8192/' /etc/kernel/cmdline
+sed -i -e 's/$/ lsm=landlock,lockdown,yama,integrity,apparmor audit=1 audit_backlog_limit=8192/' /etc/kernel/cmdline
 ```
 >[!NOTE]
 >audit_backlog_limit=8192 используется для предотвращения ошибки:
@@ -856,7 +851,7 @@ sudo -u vlad paru -S --needed xdg-user-dirs
 sudo -u vlad mkdir -p /home/vlad/.config && \
 sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
 # This file is written by xdg-user-dirs-update
-# If you want to change or add directories, just edit the line you're
+# If you want to change or add directories, just edit the line you are
 # interested in. All local changes will be retained on the next run.
 # Format is XDG_xxx_DIR="$HOME/yyy", where yyy is a shell-escaped
 # homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
@@ -995,7 +990,7 @@ test -c /dev/tpm0 && echo OK || echo FAIL
 
 **Создаём копию заголовка (Её лучше сразу на какую-то флешку перекинуть):**
 ```bash
-sudo cryptsetup luksHeaderBackup /dev/nvme0n1p3 --header-backup-file /mnt/sdb/header-nvme0n1p3.img
+sudo cryptsetup luksHeaderBackup /dev/nvme0n1p3 --header-backup-file ~/header-nvme0n1p3.img
 ```
 %%
 !!! Проверить просто sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+7 . Должно теперь работать без указания устройства

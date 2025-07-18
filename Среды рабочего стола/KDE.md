@@ -61,15 +61,15 @@ paru -S --needed libheif resvg raw-thumbnailer kde-thumbnailer-apk
 **Делаем автозагрузку usbguard:**
 ```bash
 cat << _EOF_ > $HOME/.config/autostart/usbguard-qt.desktop
-[Desktop Entry]                                      
-Categories=System;                                   
-Comment=USBGuard-Qt                                  
-Exec=usbguard-qt                                     
-GenericName=USBGuard                                 
-Icon=usbguard-icon                                   
-Keywords=USB;USBGuard;Qt;                            
-Name=USBGuard                                        
-TryExec=usbguard-qt                                  
+[Desktop Entry]
+Categories=System;
+Comment=USBGuard-Qt
+Exec=usbguard-qt
+GenericName=USBGuard
+Icon=usbguard-icon
+Keywords=USB;USBGuard;Qt;
+Name=USBGuard
+TryExec=usbguard-qt
 Type=Application
 _EOF_
 ```
@@ -82,7 +82,7 @@ Categories=System;
 Comment=Yandex-disk QT applet
 Exec=yd-go
 GenericName=Yandex Disk
-Keywords=Yandex Disk;yd-go;Qt; 
+Keywords=Yandex Disk;yd-go;Qt;
 Name=yd-go-applet
 TryExec=yd-go
 Type=Application
@@ -110,16 +110,16 @@ _EOF_
 ### Настройка ufw для kdeconnect:
 Создание службы:
 ```bash
-cat << _EOF_ > /etc/ufw/applications.d/kde-connect
+sudo bash -c 'cat << _EOF_ > /etc/ufw/applications.d/kde-connect
 [Kde-connect]
 title= Kde-connect
 description=Kde-connect server
 ports=1714
-_EOF_
+_EOF_'
 ```
 Запуск службы:
 ```bash
-sudo ufw enable Kde-connect
+sudo ufw allow Kde-connect
 ```
 
 ### Установить русскую раскладку:
@@ -139,7 +139,7 @@ _EOF_
 
 ### Включить Numlock в самой kde:
 ```bash
-sed -i "/\[\$Version\]/{ 
+sed -i "/\[\$Version\]/{
 n
 n
 a\\
