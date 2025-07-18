@@ -51,8 +51,7 @@ flowchart LR
         end
     end
   end
-  
-
+end
 fat32 -- 2Gb--> /efi
 fat32 -- 2Gb--> boot
 f2fs -- 499Gb--> /
