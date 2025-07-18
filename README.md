@@ -27,49 +27,44 @@
 #### Разметка дисков:
 ```mermaid
 flowchart LR
-  subgraph NVME0N1
-    direction LR
-    subgraph NVME0N1P1
-        direction TB
-        fat32
-    end
-    subgraph NVME0N1P2
-        direction TB
-        swapfs
-    end
-    subgraph NVME0N1P3
-        direction TB
-        f2fs
-    end
-  end
-  subgraph Linux Catalogue Structure
-    direction LR
-        /
-        /efi
-        subgraph /mnt
-            /mnt/sdb
-        end
-    end
-    subgraph sdb
-        direction TB
-        btrfs
-    end
-    subgraph sda
-        direction TB
-        subgraph ntfs
-    end
-  end
-  subgraph Windows
-    direction LR
-      boot
-      C:/
-  end
-  
+    %% Технические ID (NVME_P1, SDA_P1) здесь есть, но на картинке их не будет
+    subgraph "Физические диски"
+        direction TB
+        subgraph "NVME0N1"
+            NVME_P1["fat32 <br> EFI-раздел"]
+            NVME_P2["swapfs"]
+            NVME_P3["f2fs"]
+        end
 
-fat32 -- 2Gb--> /efi
-fat32 -- 2Gb--> boot
-f2fs -- 935Gb--> /
-swapfs -- 16Gb--> swap
-btrfs -- 2Tb--> /mnt/sdb
-ntfs -- 256Gb--> C:/
+        subgraph "SDA"
+            SDA_P1["ntfs"]
+        end
+
+        subgraph "SDB"
+            SDB_P1["btrfs"]
+        end
+    end
+
+    subgraph "Точки монтирования"
+        direction TB
+        subgraph "Linux"
+            L_EFI["/efi"]
+            L_ROOT["/"]
+            L_SWAP["[SWAP]"]
+            L_MNT_SDB["/mnt/sdb"]
+        end
+
+        subgraph "Windows"
+            W_BOOT["boot"]
+            W_C["C:/"]
+        end
+    end
+
+    %% Связи используют невидимые технические ID
+    NVME_P1 -- "2Gb" --> L_EFI
+    NVME_P1 -- " " --> W_BOOT
+    NVME_P2 -- "24Gb<br>(16Gb RAM + 8 Gb RTX 2070)" --> L_SWAP
+    NVME_P3 -- "935Gb" --> L_ROOT
+    SDA_P1  -- "256Gb" --> W_C
+    SDB_P1  -- "2Tb" --> L_MNT_SDB
 ```
