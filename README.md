@@ -29,32 +29,21 @@
 #### Разметка дисков:
 ```mermaid
 flowchart LR
-  subgraph NVME0N1
-    direction LR
-    subgraph NVME0N1P1
-        direction TB
-        fat32
-    end
-    subgraph NVME0N1P2
-        direction TB
-        swapfs
-    end
-    subgraph NVME0N1P3
-        direction TB
-        f2fs
-    end
-  end
-  subgraph Linux Catalogue Structure
-    direction LR
-        /
-        /efi
-    end
-  end
+    subgraph "Диск NVME0N1"
+        direction TB
+        P1["NVME0N1P1 <br> fat32"]
+        P2["NVME0N1P2 <br> swapfs"]
+        P3["NVME0N1P3 <br> f2fs"]
+    end
 
+    subgraph "Файловая система Linux"
+        direction TB
+        M1["/efi"]
+        M2["[SWAP]"]
+        M3["/"]
+    end
 
-
-fat32 -- 2Gb--> /efi
-fat32 -- 2Gb--> boot
-f2fs -- 499Gb--> /
-swapfs -- 11Gb--> swap
+    P1 -- "2Gb" --> M1
+    P2 -- "9Gb<br>(8Gb RAM + 1 Gb GTX 940m)" --> M2
+    P3 -- "501Gb" --> M3
 ```
