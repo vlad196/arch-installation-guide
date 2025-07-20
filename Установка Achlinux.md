@@ -694,7 +694,7 @@ _EOF_
 ### Plymouth:
 **В cmdline добавить:**
 ```bash
-sed -i -e 's/$/ loglevel=3 quite splash rd.udev.log_priority=3 vt.global_cursor_default=0/' /etc/kernel/cmdline
+sed -i -e 's/$/ splash quiet loglevel=3 systemd.show_status=auto rd.udev.log_level=3 vt.global_cursor_default=0/' /etc/kernel/cmdline
 ```
 **В hook в mkinitcpio после udev вставить plymouth:**
 ```bash
@@ -1028,12 +1028,6 @@ vm.vfs_cache_pressure=50
 __EOF__"
 ```
 
-## Установка и запуск планировщика, если ядро с sched-ext
-```bash
-paru -Sy scx-scheds && \
-sudo systemctl enable --now scx
-```
-
 ## Переменные для wayland
 
 > [!NOTE]
@@ -1063,8 +1057,8 @@ paru -S --needed ufw
 **Стандартные настройки:**
 ```bash
 sudo ufw default deny && \
-sudo ufw allow from 192.168.0.0/24 && \
-sudo ufw limit ssh
+sudo ufw allow SSH && \
+sudo ufw allow Bonjour
 ```
 **Включение ufw:**
 ```bash

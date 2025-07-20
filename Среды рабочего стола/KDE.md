@@ -111,15 +111,15 @@ _EOF_
 Создание службы:
 ```bash
 sudo bash -c 'cat << _EOF_ > /etc/ufw/applications.d/kde-connect
-[Kde-connect]
-title= Kde-connect
-description=Kde-connect server
-ports=1714
+[KDE Connect]
+title= KDE Connect
+description=KDE Connect server
+ports=1714:1764/tcp|1714:1764/udp
 _EOF_'
 ```
 Запуск службы:
 ```bash
-sudo ufw allow Kde-connect
+sudo ufw allow KDE Connect
 ```
 
 ### Установить русскую раскладку:
