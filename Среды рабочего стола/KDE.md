@@ -61,15 +61,15 @@ paru -S --needed libheif resvg raw-thumbnailer kde-thumbnailer-apk
 **Делаем автозагрузку usbguard:**
 ```bash
 cat << _EOF_ > $HOME/.config/autostart/usbguard-qt.desktop
-[Desktop Entry]                                      
-Categories=System;                                   
-Comment=USBGuard-Qt                                  
-Exec=usbguard-qt                                     
-GenericName=USBGuard                                 
-Icon=usbguard-icon                                   
-Keywords=USB;USBGuard;Qt;                            
-Name=USBGuard                                        
-TryExec=usbguard-qt                                  
+[Desktop Entry]
+Categories=System;
+Comment=USBGuard-Qt
+Exec=usbguard-qt
+GenericName=USBGuard
+Icon=usbguard-icon
+Keywords=USB;USBGuard;Qt;
+Name=USBGuard
+TryExec=usbguard-qt
 Type=Application
 _EOF_
 ```
@@ -82,7 +82,7 @@ Categories=System;
 Comment=Yandex-disk QT applet
 Exec=yd-go
 GenericName=Yandex Disk
-Keywords=Yandex Disk;yd-go;Qt; 
+Keywords=Yandex Disk;yd-go;Qt;
 Name=yd-go-applet
 TryExec=yd-go
 Type=Application
@@ -111,35 +111,19 @@ _EOF_
 Создание службы:
 ```bash
 cat << _EOF_ > /etc/ufw/applications.d/kde-connect
-[Kde-connect]
-title= Kde-connect
-description=Kde-connect server
-ports=1714
+[KDE Connect]
+title= KDE-Connect
+description=KDE Connect server
+ports=1714:1764/tcp|1714:1764/udp
 _EOF_
 ```
 Запуск службы:
 ```bash
-sudo ufw enable Kde-connect
+sudo ufw enable "KDE Connect"
 ```
-
-### Установить русскую раскладку:
-```bash
-cat << _EOF_ >> ~/.config/kxkbrc
-
-[Layout]
-DisplayNames=,
-LayoutList=us,ru
-Use=true
-VariantList=,typo
-_EOF_
-```
-
-### Добавляем сочетание клавиш смены языка как в gnome:
-Увы, пока только через Gui настройки
-
 ### Включить Numlock в самой kde:
 ```bash
-sed -i "/\[\$Version\]/{ 
+sed -i "/\[\$Version\]/{
 n
 n
 a\\

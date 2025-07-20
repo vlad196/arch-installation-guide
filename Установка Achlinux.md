@@ -236,14 +236,14 @@ passwd vlad
 ## Настройка компилятора и пакетного менеджера:
 **Для мнимой производительности для нашего пользователя переназначаем флаги GCC:**
 ```bash
-sudo -u vlad cat << _EOF_ > /home/vlad/.makepkg.conf
+sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.makepkg.conf
 CFLAGS="-march=native -mtune=native -O2 -pipe -fno-plt -fexceptions \\
 -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security \\
 -fstack-clash-protection -fcf-protection"
 CXXFLAGS="$CFLAGS -Wp,-D_GLIBCXX_ASSERTIONS"
 RUSTFLAGS="-C opt-level=3 -C target-cpu=native -C link-arg=-z -C link-arg=pack-relative-relocs"
 MAKEFLAGS="-j$(nproc) -l$(nproc)"
-_EOF_
+_EOF_'
 ```
 >[!NOTE]
 >Все эти флаги взяты отсюда:
@@ -313,7 +313,7 @@ pacman -U 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-202403
     'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.0.0.r7.g1f38429-1-x86_64.pkg.tar.zst'
 ```
 
-Уже потом добавляем в pacman.conf:
+Уже репозитории добавляем в pacman.conf:
 ```bash
 sed '/# Default repositories/i\
 \# cachyos repos\
@@ -648,7 +648,7 @@ _EOF_
 ### Plymouth:
 **В cmdline добавить:**
 ```bash
-sed -i -e 's/$/ loglevel=3 quite splash rd.udev.log_priority=3 vt.global_cursor_default=0/' /etc/kernel/cmdline
+sed -i -e 's/$/ splash quiet loglevel=3 systemd.show_status=auto rd.udev.log_level=3 vt.global_cursor_default=0/' /etc/kernel/cmdline
 ```
 **В hook в mkinitcpio после udev вставить plymouth:**
 ```bash
@@ -802,9 +802,9 @@ sudo -u vlad paru -S --needed xdg-user-dirs
 **Указываем папки для типовых каталогов:**
 ```bash
 sudo -u vlad mkdir -p /home/vlad/.config && \
-sudo -u vlad cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
+sudo -u vlad bash -c 'cat << _EOF_ > /home/vlad/.config/user-dirs.dirs
 # This file is written by xdg-user-dirs-update
-# If you want to change or add directories, just edit the line you're
+# If you want to change or add directories, just edit the line you are
 # interested in. All local changes will be retained on the next run.
 # Format is XDG_xxx_DIR="$HOME/yyy", where yyy is a shell-escaped
 # homedir-relative path, or XDG_xxx_DIR="/yyy", where /yyy is an
@@ -818,7 +818,7 @@ XDG_DOCUMENTS_DIR="/mnt/sdb/YandexDisk/Компьютер SURFACE-BOOK/Доку�
 XDG_MUSIC_DIR="/mnt/sdb/Музыка"
 XDG_PICTURES_DIR="/mnt/sdb/YandexDisk/Компьютер SURFACE-BOOK/Изображения"
 XDG_VIDEOS_DIR="/mnt/sdb/Видео"
-_EOF_
+_EOF_'
 ```
 
 ### Шрифты:
@@ -1009,8 +1009,8 @@ paru -S --needed ufw
 **Стандартные настройки:**
 ```bash
 sudo ufw default deny && \
-sudo ufw allow from 192.168.0.0/24 && \
-sudo ufw limit ssh
+sudo ufw allow ssh
+sudo ufw allow Bonjour
 ```
 **Включение ufw:**
 ```bash
