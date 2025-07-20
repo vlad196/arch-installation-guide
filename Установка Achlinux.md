@@ -411,9 +411,9 @@ paru -S ccache
 ```
 Редактируем makepkg.conf:
 ```bash
-sudo -u vlad cat << _EOF_ >> /home/vlad/.makepkg.conf
+sudo -u vlad bash -c 'cat << _EOF_ >> /home/vlad/.makepkg.conf
 BUILDENV=(!distcc color ccache check !sign)
-_EOF_
+_EOF_'
 ```
 ### Отключение многоступенчатого включения дисков
 
@@ -549,7 +549,7 @@ sudo -u vlad paru -S --needed $MAIN_KERNEL  $MAIN_KERNEL-headers mkinitcpio-firm
 ```
 
 ```bash
-sudo -u vlad paru -S --needed --asdeps wireless-regdb linux-firmware  modprobed-db uksmd
+sudo -u vlad paru -S --needed --asdeps wireless-regdb linux-firmware  modprobed-db cachyos-ksm-settings
 ```
 
 > [!NOTE]
