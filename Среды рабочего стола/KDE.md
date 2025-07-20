@@ -1,3 +1,7 @@
+>[!Nore]
+>В KDE Plasma нет поддержки автояркости и блокировки экрана по кнопке (по умолчанию).
+>На кнопку выключения можно настроить либо выключить экран, либо заблокировать экран, но не одновременно.
+
 ### Установка:
 ```bash
 sudo -u vlad paru -Sy --needed plasma-meta kde-{graphics,system,utilities,multimedia,network,pim,sdk}-meta sddm power-profiles-daemon kde-cdemu-manager  xdg-desktop-portal-gtk
@@ -10,13 +14,18 @@ sudo -u vlad paru -S --asdep --needed {flatpak,plymouth}-kcm cracklib galera jud
 >Для роли phonon backend всегда выбираем VLC, т.к. на сегодня нормально [только он и поддерживается](https://community.kde.org/Distributions/Packaging_Recommendations#Non-Plasma_packages).
 >При выборе tesdate нужно быть внимательней! Наш регион 96
 
+**Для работы mariadb в akkonadi**
+```bash
+systemctl enable mariadb.service
+```
+
 **Включаем экранный менеджер:**
 ```bash
-sudo systemctl enable sddm.service
+systemctl enable sddm.service
 ```
 Включаем power-profiles-daemon для powerdevil:
 ```bash
-sudo systemctl enable power-profiles-daemon.service
+systemctl enable power-profiles-daemon.service
 ```
 
 #### sddm через wayland
@@ -107,7 +116,7 @@ cat << _EOF_ > $HOME/.local/share/flatpak/overrides/global
 filesystems=xdg-config/gtk-3.0:ro;xdg-config/gtk-4.0:ro;
 _EOF_
 ```
-### Настройка ufw для kdeconnect:
+### Настройка ufw для KDE Connect:
 Создание службы:
 ```bash
 sudo bash -c 'cat << _EOF_ > /etc/ufw/applications.d/kde-connect
@@ -119,24 +128,18 @@ _EOF_'
 ```
 Запуск службы:
 ```bash
-sudo ufw allow KDE Connect
+sudo ufw allow "KDE Connect"
 ```
 
-### Установить русскую раскладку:
+### Включение D-Bus
 ```bash
-cat << _EOF_ >> ~/.config/kxkbrc
-
-[Layout]
-DisplayNames=,
-LayoutList=us,ru
-Use=true
-VariantList=,typo
+mkdir -p $HOME/.local/share/dbus-1/services && \
+cat << _EOF_> $HOME/.local/share/dbus-1/services/org.freedesktop.secrets.service
+[D-BUS Service]
+Name=org.freedesktop.secrets
+Exec=/usr/bin/kwalletd6
 _EOF_
 ```
-
-### Добавляем сочетание клавиш смены языка как в gnome:
-Увы, пока только через Gui настройки
-
 ### Включить Numlock в самой kde:
 ```bash
 sed -i "/\[\$Version\]/{
