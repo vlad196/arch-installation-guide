@@ -18,13 +18,6 @@ sudo -u vlad paru -Sy --needed gnome gnome-extra gnome-tweaks
 systemctl enable gdm.service
 ```
 
->[!Note]
->С драйвера версии 545 nvidia научилась работать без nvidia_drm.modeset=1 используя simpledrm, но правила gnome ещё не поменяли. Поэтому их всё равно надо загрушить
-```bash
-ln -s /dev/null /etc/udev/rules.d/61-gdm.rules
-```
-
-
 # Gnome настройка после перезагрузки
 ### Включение темы Adwaita для приложений QT в Flatpak.
 
@@ -42,10 +35,19 @@ org.kde.PlatformTheme.QGnomePlatform
 ```bash
 paru -S gnome-browser-connector
 ```
-**Настройка ufw для gsconnect:**
+### Настройка ufw для KDE Connect:
+Создание службы:
 ```bash
-sudo ufw allow 1714:1764/udp && \
-sudo ufw allow 1714:1764/tcp
+sudo bash -c 'cat << _EOF_ > /etc/ufw/applications.d/kde-connect
+[KDE Connect]
+title= KDE Connect
+description=KDE Connect server
+ports=1714:1764/tcp|1714:1764/udp
+_EOF_'
+```
+Запуск службы:
+```bash
+sudo ufw allow "KDE Connect"
 ```
 
 ### Интеграция Usbguard с gnome:
@@ -55,9 +57,9 @@ sudo ufw allow 1714:1764/tcp
 **Добавляем права на исполнение утилиты usbguard группе usbguard:**
 
 ```bash
-cat << _EOF_ > /etc/sudoers.d/usbguard-group
+sudo bash -c 'cat << _EOF_ > /etc/sudoers.d/usbguard-group
 %usbguard ALL=(ALL) /usr/bin/usbguard *
-_EOF_
+_EOF_'
 ```
 
 **Создаём polkit для группы usbguard в гноме:**

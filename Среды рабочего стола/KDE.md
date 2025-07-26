@@ -12,6 +12,7 @@ sudo -u vlad paru -S --asdep --needed {flatpak,plymouth}-kcm cracklib galera jud
 
 **Включаем экранный менеджер:**
 ```bash
+mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql && \\
 sudo systemctl enable sddm.service
 ```
 Включаем power-profiles-daemon для powerdevil:
