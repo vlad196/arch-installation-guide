@@ -16,6 +16,7 @@ sudo -u vlad paru -S --asdep --needed {flatpak,plymouth}-kcm cracklib galera jud
 
 **Для работы mariadb в akkonadi**
 ```bash
+mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql && \\
 systemctl enable mariadb.service
 ```
 
