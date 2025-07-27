@@ -199,17 +199,31 @@ ExecStart=/usr/bin/systemctl unmask nvidia-suspend.service nvidia-hibernate.serv
 WantedBy=multi-user.target
 _EOF_
 ```
-**Добавляем /etc/profile.d/ для переназначения GL и mesa от nvidia, когда nouveau запущен**
+**Добавляем скрипт в /etc/profile.d/ для переназначения GL и Mesa библиотек в зависимости от загруженного драйвера**
 ```bash
-cat << _EOF_ > /etc/profile.d/nouveau_loaders.sh
+cat << _EOF_ > /etc/profile.d/gpu_env_switcher.sh
+# Common settings
+__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json
 # Check nvidia driver load
-if [[ ! -d /proc/driver/nvidia ]]; then
+if [[ -d /proc/driver/nvidia ]]; then
+    export MESA_LOADER_DRIVER_OVERRIDE=zink \
+    GALLIUM_DRIVER=zink \
+    __GLX_VENDOR_LIBRARY_NAME=mesa \
+    PROTON_ENABLE_NGX_UPDATER=1 \
+    DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE=on \
+    DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE=on \
+    DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE=on \
+    DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest \
+    DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest
+# Check nvidia driver didn't load
+elif [[ ! -d /proc/driver/nvidia ]]; then
     # Check nvidia loaders exist
     if [[ -f /usr/share/glvnd/egl_vendor.d/10_nvidia.json || -f /usr/share/vulkan/icd.d/nvidia_icd.json ]]; then
         export __GLX_VENDOR_LIBRARY_FILENAMES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json \
-            __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
             VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nouveau_icd.i686.json:/usr/share/vulkan/icd.d/nouveau_icd.x86_64.json \
-            MESA_VK_DEVICE_SELECT=10de:1f02 NOUVEAU_USE_ZINK=true ZINK_DEBUG=ioopt
+            MESA_VK_DEVICE_SELECT=10de:1f02 \
+            NOUVEAU_USE_ZINK=true \
+            ZINK_DEBUG=ioopt
     fi
 fi
 _EOF_
@@ -218,6 +232,22 @@ _EOF_
 **Активируем их:**
 ```bash
 systemctl enable mask-nvidia.service unmask-nvidia.service
+```
+
+**Добавляем евенты для включения/выключения управления питания во время работы**
+
+```bash
+cat << _EOF_ > /etc/udev/rules.d/71-nvidia.rules
+# Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind
+ACTION=="add|bind", SUBSYSTEM=="pci", DRIVERS=="nvidia", \
+    ATTR{vendor}=="0x10de", ATTR{class}=="0x03[0-9]*", \
+    TEST=="power/control", ATTR{power/control}="auto"
+
+# Disable runtime PM for NVIDIA VGA/3D controller devices on driver unbind
+ACTION=="remove|unbind", SUBSYSTEM=="pci", DRIVERS=="nvidia", \
+    ATTR{vendor}=="0x10de", ATTR{class}=="0x03[0-9]*", \
+    TEST=="power/control", ATTR{power/control}="on"
+_EOF_
 ```
 
 TODO: проверить, актуально ли
@@ -243,4 +273,3 @@ _EOF_
 ```
 >[!NOTE]
 >К сожалению, с AUR скриптами хуки не работают. Заработает если будет обычный пакет nvidia-dkms
-

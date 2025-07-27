@@ -382,7 +382,7 @@ systemctl enable bluetooth.service
 ### Ananicy CPP и готовые правила
 Установка:
 ```bash
-paru -S ananicy-cpp cachyos-ananicy-rules
+sudo -u vlad paru -S --needed ananicy-cpp cachyos-ananicy-rules
 ```
 Запуск:
 ```bash
@@ -403,7 +403,6 @@ paru -S irqbalance
 ```bash
 systemctl enable irqbalance.service
 ```
-
 ### ccache
 Установка:
 ```bash
@@ -415,13 +414,83 @@ sudo -u vlad bash -c 'cat << _EOF_ >> /home/vlad/.makepkg.conf
 BUILDENV=(!distcc color ccache check !sign)
 _EOF_'
 ```
-### Отключение многоступенчатого включения дисков
+## Установка и запуск планировщика, если ядро с sched-ext
+```bash
+sudo -u vlad paru -Sy scx-scheds && \
+sudo systemctl enable scx
+```
 
+## Настойка подкачки отключения упреждённого чтения:
+```bash
+sudo bash -c "cat << __EOF__ > /etc/sysctl.d/99-sysctl.conf
+vm.swappiness=100
+vm.page-cluster=1 #Для HDD 2, для SSD 1, для ZRAM 0
+__EOF__"
+```
+
+## Настройка кэша VFS:
+```bash
+sudo bash -c "cat << __EOF__ > /etc/sysctl.d/99-vfs.conf
+vm.vfs_cache_pressure=50
+__EOF__"
+```
+
+### Отключение многоступенчатого включения дисков
 ```bash
 cat << _EOF_ > /etc/modprobe.d/30-ahci-disable-sss.conf
 options libahci ignore_sss=1
 _EOF_
 ```
+
+### I/O планировщики для разного типа устройств хранения
+```bash
+cat << _EOF__ > /etc/udev/rules.d/60-ioschedulers.rules
+# HDD
+ACTION=="add|change", KERNEL=="sd[a-z]*", ATTR{queue/rotational}=="1", \
+    ATTR{queue/scheduler}="bfq"
+
+# SSD
+ACTION=="add|change", KERNEL=="sd[a-z]*|mmcblk[0-9]*", ATTR{queue/rotational}=="0", \
+    ATTR{queue/scheduler}="mq-deadline"
+
+# NVMe SSD
+ACTION=="add|change", KERNEL=="nvme[0-9]*", ATTR{queue/rotational}=="0", \
+    ATTR{queue/scheduler}="none"
+_EOF_
+```
+
+### Улучшаем производительность для приложенний использующие tmalloc
+```bash
+cat << _EOF_ > /etc/tmpfiles.d/thp.conf
+# Improve performance for applications that use tcmalloc
+# https://github.com/google/tcmalloc/blob/master/docs/tuning.md#system-level-optimizations
+w! /sys/kernel/mm/transparent_hugepage/defrag - - - - defer+madvise
+_EOF_
+```
+### Добавляем настройки для записи грязных битов
+```bash
+cat << _EOF_ > /etc/sysctl.d/99-dirty-bytes.conf
+vm.dirty_bytes = 268435456
+vm.dirty_background_bytes = 67108864
+vm.dirty_writeback_centisecs = 1500
+_EOF
+```
+
+### Отключаем watchdog
+Отключаем watchdog:
+```bash
+echo kernel.nmi_watchdog = 0 > /etc/sysctl.d/99-disable-watchdog.conf
+```
+
+Отключаем устройство watchdog:
+```bash
+cat << _EOF_ > /etc/modprobe.d/disable-watchdog.conf
+# Blacklist the AMD SP5100 TCO Watchdog/Timer module (Required for Ryzen cpus)
+blacklist sp5100_tco
+_EOF_
+```
+### Включаем загрузку ntsync:
+echo ntsync > /etc/modules-load.d/ntsync.conf
 
 ### Редактирование MKINITCPIO:
 **Копируем mkinitcpio.conf в mkinitcpio.conf.d:**
@@ -955,29 +1024,6 @@ sudo cryptsetup luksDump /dev/nvme0n1p3
 **Обновляем ядра и подписываем их:**
 ```bash
 sudo mkinitcpio -P
-```
-
-## Настойка подкачки отключения упреждённого чтения:
-
-```bash
-sudo bash -c "cat << __EOF__ > /etc/sysctl.d/99-sysctl.conf
-vm.swappiness=100
-vm.page-cluster=0
-__EOF__"
-```
-
-## Настройка кэша VFS:
-
-```bash
-sudo bash -c "cat << __EOF__ > /etc/sysctl.d/99-vfs.conf
-vm.vfs_cache_pressure=50
-__EOF__"
-```
-
-## Установка и запуск планировщика, если ядро с sched-ext
-```bash
-paru -Sy scx-scheds && \
-sudo systemctl enable --now scx
 ```
 
 ## Переменные для wayland
