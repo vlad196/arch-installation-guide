@@ -127,6 +127,16 @@ _EOF_
 ```bash
 sudo ufw enable "KDE Connect"
 ```
+
+### Оптимизация Firefox
+Включаем file picker Dolphin в Firefox:
+В about:config ищем `widget.use-xdg-desktop-portal.file-picker`, меняем значение на `1`
+
+Для интеграции KDE MIME type системы, прокси и file-dialog, делаем символическую ссылку MIME базы:
+```bash
+ln -s ~/.config/mimeapps.list ~/.local/share/applications/mimeapps.list
+```
+
 ### Включить Numlock в самой kde:
 ```bash
 sed -i "/\[\$Version\]/{
