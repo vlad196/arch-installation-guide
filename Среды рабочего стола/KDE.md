@@ -19,6 +19,11 @@ sudo systemctl enable sddm.service
 ```bash
 sudo systemctl enable power-profiles-daemon.service
 ```
+Сканируем lm_sensors доступные датчики устройств (для корректного отображения датчиков в настройках KDE plasma):
+
+```bash
+sensors-detect
+```
 
 #### sddm через wayland
 ```bash

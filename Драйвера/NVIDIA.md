@@ -214,7 +214,8 @@ if [[ -d /proc/driver/nvidia ]]; then
     DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE=on \
     DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE=on \
     DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest \
-    DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest
+    DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION=render_preset_latest \
+    WEBKIT_DISABLE_DMABUF_RENDERER=1 #webviev on nvidia broken https://bugs.webkit.org/show_bug.cgi?id=261874
 # Check nvidia driver didn't load
 elif [[ ! -d /proc/driver/nvidia ]]; then
     # Check nvidia loaders exist

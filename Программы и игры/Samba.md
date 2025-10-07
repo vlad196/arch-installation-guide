@@ -9,36 +9,31 @@ sudo pacman -S samba
 ```bash
 sudo bash -c 'cat << _EOF_ > /etc/samba/smb.conf
 [global]
-# Рабочая группа Windows
-workgroup = WORKGROUP
-server string = Samba
-server min protocol = SMB3_11
-server max protocol = SMB3_11
-server smb encrypt = desired
-security = user
-# Windows против гостевых режимов, поэтому отключаем
-map to guest = never
-fruit:copyfile = yes
-create mask = 0664
-hide dot files = yes
 # Для UserShares
-usershare path = /var/lib/samba/usershares
-usershare max shares = 100
-usershare allow guests = yes
-usershare owner only = yes
-
-[media]
-comment = Public Folder
-#Тут пишем путь до папки для шары
-path = /mnt/sdb/Видео/
-browseable = Yes
-guest ok = no
-public = no
-writeable = Yes
-read only = no
-guest ok = yes
-create mask = 0666
-directory mask = 0775
+  usershare path = /var/lib/samba/usershares
+  usershare max shares = 100
+  usershare allow guests = yes
+  usershare owner only = yes
+  # Рабочая группа Windows
+  workgroup = WORKGROUP
+  server string = Samba
+  server min protocol = SMB2_02
+  server max protocol = SMB3_11
+  #server smb encrypt = desired
+  map to guest = Bad Password
+  #security = user
+  # Твики для Apple
+  fruit:copyfile = yes
+  vfs object = fruit streams_xattr
+  #create mask = 0664
+  hide dot files = yes
+  # Твики для производительности
+  server multi channel support = yes
+  deadtime = 30
+  use sendfile = yes
+  min receivefile size = 16384
+  aio read size = 1
+  aio write size = 1
 _EOF_`
 
 Настройка UFW:
